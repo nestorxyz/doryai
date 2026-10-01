@@ -8,25 +8,22 @@ import {
   useCallback,
 } from 'react';
 import {
-  Send,
   Trash2,
   Link as LinkIcon,
   ExternalLink,
   ArrowRight,
+  Check,
+  Loader2,
 } from 'lucide-react';
 import { Message } from '@/lib/types';
 import {
   formatChatRecord,
   getActivationStep,
-  getSavedLinkPreview,
-  getSavedLinkPreviewsById,
-  getSearchResultPreviews,
   suggestedSavedLinkQuestion,
+  type SavedLinkPreview,
   type SearchResultPreview,
 } from './chat/chat-message';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
   Tooltip,
@@ -42,8 +39,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { ChatAnswer } from './chat/chat-answer';
+import { ChatComposer } from './chat/chat-composer';
+import { getChatTurns, followUpQuestions } from './chat/chat-turn';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
@@ -81,16 +79,12 @@ const SearchResultCard = ({ result }: { result: SearchResultPreview }) => {
   );
 };
 
-const SearchResultCards = memo(({ message }: { message: Message }) => {
-  const results = getSearchResultPreviews({
-    role: message.role ?? '',
-    parts: message.parts,
-  });
+const SearchResultCards = memo(({ results }: { results: SearchResultPreview[] }) => {
   if (results.length === 0) return null;
 
   return (
     <div className="saved-link-results mt-3" aria-label="Saved link search results">
-      <p className="mb-2 text-xs text-muted-foreground">Top matches</p>
+      <p className="mb-2 text-xs font-medium text-muted-foreground">Links in this turn</p>
       <div className="saved-link-results-grid">
         {results.map((result) => (
           <SearchResultCard key={result.id} result={result} />
@@ -101,20 +95,14 @@ const SearchResultCards = memo(({ message }: { message: Message }) => {
 });
 
 const SavedLinkMoment = ({
-  message,
+  saved,
   onAsk,
   disabled,
 }: {
-  message: Message;
+  saved: SavedLinkPreview;
   onAsk: (question: string, savedLinkId: string) => void;
   disabled: boolean;
 }) => {
-  const saved = getSavedLinkPreview({
-    role: message.role ?? '',
-    parts: message.parts,
-  });
-  if (!saved) return null;
-
   const captureStatus = saved.contentScope === 'metadata-only'
     ? 'Only the title and metadata were available.'
     : saved.contentScope === 'partial-preview'
@@ -158,7 +146,7 @@ const SavedLinkMoment = ({
           size="sm"
           disabled={disabled}
           onClick={() => onAsk(suggestedSavedLinkQuestion(), saved.id)}
-          className="gap-2"
+          className="min-h-10 gap-2"
         >
           Ask about this link
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -169,7 +157,7 @@ const SavedLinkMoment = ({
 };
 
 // Memoized list to avoid re-rendering the whole chat on each keystroke
-const MessageList = memo(
+export const ChatConversation = memo(
   ({
     messages,
     isBotTyping,
@@ -181,73 +169,65 @@ const MessageList = memo(
     messagesEndRef: React.RefObject<HTMLDivElement>;
     onAskSavedLink: (question: string, savedLinkId: string) => void;
   }) => {
-    const savedLinks = useMemo(
-      () => getSavedLinkPreviewsById(messages.map((message) => ({
-        role: message.role ?? '',
-        parts: message.parts,
-      }))),
-      [messages],
-    );
+    const turns = useMemo(() => getChatTurns(messages), [messages]);
     return (
-      <div className="space-y-6">
-        {messages.map((message) => (
-          <div key={message.id} className="animate-message-in group">
-            {/* Map Convex _id to id if needed, or use _id as key */}
-            <div
-              className={cn(
-                'rounded-lg border p-4',
-                message.sender === 'user'
-                  ? 'bg-[#141414] border-[#1D1D1D]'
-                  : 'bg-transparent border-0',
-              )}
-            >
-              {message.sender === 'bot' || message.role === 'model' ? (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a {...props} target="_blank" rel="noopener noreferrer" />
-                    ),
-                  }}
-                >
-                  {message.text ||
-                    (message.parts && message.parts[0]?.text) ||
-                    ''}
-                </ReactMarkdown>
-              ) : (
-                <p className="text-sm whitespace-pre-wrap">
-                  {message.text || (message.parts && message.parts[0]?.text)}
+      <div className="space-y-8" aria-label="Conversation">
+        {turns.map((turn, index) => {
+          if (turn.kind === 'user') return (
+            <section key={turn.id} className="flex justify-end" aria-label="Your message">
+              <div className="max-w-[90%] min-w-0 rounded-2xl rounded-br-md border border-white/10 bg-[#1A1A1A] px-4 py-3 sm:max-w-[85%]">
+                <p className="whitespace-pre-wrap break-words text-sm leading-6 [overflow-wrap:anywhere]">{turn.text}</p>
+              </div>
+            </section>
+          );
+          const isLast = index === turns.length - 1;
+          const working = isLast && isBotTyping;
+          const followUpId = turn.contextLinkId ?? turn.saved?.id;
+          return (
+            <section key={turn.id} className="min-w-0" aria-label="DoryAI response">
+              <div className="mb-3 flex items-center gap-2 text-xs font-medium text-gray-300">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true"><LinkIcon className="h-3.5 w-3.5" /></span>
+                DoryAI
+              </div>
+              {turn.activity && !turn.warnings.includes(turn.activity) ? (
+                <p className="mb-3 flex items-center gap-2 text-xs text-gray-400" role={working ? 'status' : undefined}>
+                  {working ? <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" aria-hidden="true" /> : <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                  {turn.activity}
                 </p>
-              )}
-            </div>
-            {message.role === 'user' && message.contextLinkId &&
-              savedLinks.has(message.contextLinkId) ? (
-              <div className="saved-link-results mt-3" aria-label="Selected saved link">
-                <p className="mb-2 text-xs text-muted-foreground">This saved link</p>
-                <div className="saved-link-results-grid">
-                  <SearchResultCard result={savedLinks.get(message.contextLinkId)!} />
+              ) : null}
+              {turn.warnings.map((warning) => (
+                <p key={warning} className="mb-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200" role="status">{warning}</p>
+              ))}
+              {turn.texts.map((text, textIndex) => <ChatAnswer key={textIndex} text={text} sources={turn.sources} />)}
+              {turn.saved ? <SavedLinkMoment saved={turn.saved} onAsk={onAskSavedLink} disabled={isBotTyping} /> : null}
+              <SearchResultCards results={turn.sources} />
+              {turn.sources.length ? (
+                <nav className="mt-3 flex flex-wrap gap-2" aria-label="Saved link references">
+                  {turn.sources.map((source, sourceIndex) => (
+                    <a key={source.id} href={source.url} target="_blank" rel="noopener noreferrer" title={source.title}
+                      className="inline-flex min-h-9 max-w-full items-center gap-2 rounded-lg border border-white/10 px-2.5 py-1 text-xs text-gray-300 transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                      <span className="text-gray-500" aria-hidden="true">{sourceIndex + 1}</span>
+                      <span className="truncate">{new URL(source.url).hostname}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+                      <span className="sr-only">: {source.title}</span>
+                    </a>
+                  ))}
+                </nav>
+              ) : null}
+              {isLast && !working && turn.texts.length > 0 && followUpId ? (
+                <div className="mt-4 flex flex-wrap gap-2" aria-label="Ask a follow-up about this saved link">
+                  {followUpQuestions.map(({ label, question }) => (
+                    <Button key={label} type="button" variant="outline" size="sm" className="min-h-10 rounded-full border-white/10 bg-transparent text-xs text-gray-300" onClick={() => onAskSavedLink(question, followUpId)}>{label}<ArrowRight className="h-3 w-3" aria-hidden="true" /></Button>
+                  ))}
                 </div>
-              </div>
-            ) : null}
-            <SearchResultCards message={message} />
-            <SavedLinkMoment
-              message={message}
-              onAsk={onAskSavedLink}
-              disabled={isBotTyping}
-            />
-          </div>
-        ))}
-        {isBotTyping && (
-          <div className="group" role="status" aria-label="DoryAI is working">
-            <div className="rounded-lg p-4">
-              <div className="flex items-center gap-1">
-                <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                <span className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></span>
-              </div>
-            </div>
-          </div>
-        )}
+              ) : null}
+              {working && !turn.activity ? <p className="mt-3 flex items-center gap-2 text-xs text-gray-400" role="status"><Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" aria-hidden="true" />Working on your request…</p> : null}
+            </section>
+          );
+        })}
+        {isBotTyping && turns.at(-1)?.kind !== 'assistant' ? (
+          <p className="flex items-center gap-2 text-sm text-gray-400" role="status"><Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden="true" />Working on your request…</p>
+        ) : null}
         <div ref={messagesEndRef} />
       </div>
     );
@@ -353,7 +333,7 @@ const Chat = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
-      behavior: 'smooth',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
     });
   }, [messages, isBotTyping]);
 
@@ -489,7 +469,7 @@ const Chat = () => {
                 {activationStep === 'retrieve' &&
                   'Step 2 of 2: ask DoryAI to find that link.'}
                 {activationStep === 'complete' &&
-                  'First save and retrieval complete.'}
+                  'Your library, in conversation.'}
               </p>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -547,7 +527,7 @@ const Chat = () => {
           </Dialog>
           <div className="flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-[720px] px-4 py-6">
-              <MessageList
+              <ChatConversation
                 messages={deferredMessages}
                 isBotTyping={isBotTyping}
                 messagesEndRef={messagesEndRef}
@@ -595,40 +575,7 @@ const Chat = () => {
               ) : null}
             </div>
           )}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleSendMessage();
-            }}
-            className="relative"
-          >
-            <div className="relative rounded-[28px] md:rounded-full border border-[#1D1D1D] bg-[#1A1A1A] shadow-sm">
-              <Textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Talk with DoryAI"
-                className="w-full bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base min-h-[52px] max-h-[200px] px-12 md:pr-28 py-3 resize-none"
-                rows={1}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-              />
-              <div className="absolute inset-y-0 right-2 flex items-center gap-1">
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
-                  disabled={isBotTyping || !input.trim() || !sessionId}
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </form>
+          <ChatComposer value={input} onChange={setInput} onSend={() => { void handleSendMessage(); }} inputRef={inputRef} working={isBotTyping} disabled={isBotTyping || !sessionId} />
         </div>
       </div>
     </div>

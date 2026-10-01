@@ -34,6 +34,47 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Scoped to chat: the library and other prose surfaces keep their styling. */
+.chat-answer {
+  color: #e5e5e5;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.chat-answer + .chat-answer { margin-top: 1rem; }
+.chat-answer p + p { margin-top: 0.875rem; }
+.chat-answer :is(h1, h2, h3, h4) {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #fafafa;
+  text-wrap: pretty;
+}
+.chat-answer > :first-child { margin-top: 0; }
+.chat-answer :is(ul, ol) { margin: 0.875rem 0; padding-left: 1.5rem; }
+.chat-answer ul { list-style: disc; }
+.chat-answer ol { list-style: decimal; }
+.chat-answer li + li { margin-top: 0.5rem; }
+.chat-answer li > p + p { margin-top: 0.5rem; }
+.chat-answer strong { color: #fafafa; font-weight: 600; }
+.chat-answer blockquote {
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 2px solid hsl(var(--primary) / 0.65);
+  color: #c4c4c4;
+}
+.chat-answer a { color: #fda987; text-decoration: underline; text-underline-offset: 3px; }
+.chat-answer a:hover { color: #ffcfb9; }
+.chat-answer a:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
+.chat-answer pre { margin: 1rem 0; overflow-x: auto; border: 1px solid #303030; border-radius: 0.75rem; padding: 1rem; background: #171717; }
+.chat-answer code { font-size: 0.85em; }
+.chat-answer :not(pre) > code { padding: 0.15rem 0.3rem; border-radius: 0.25rem; background: #252525; }
+.chat-answer table { margin: 1rem 0; width: 100%; font-size: 0.875rem; }
+.chat-answer :is(th, td) { border-bottom: 1px solid #303030; padding: 0.5rem 0.75rem; text-align: left; }
+.chat-answer hr { margin: 1.5rem 0; border-color: #303030; }
+
 @layer base {
   :root {
     --background: 220 9% 7%; /* #111214 */

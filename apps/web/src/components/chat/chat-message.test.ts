@@ -297,6 +297,7 @@ describe('saved search results', () => {
         response: { links: [
           { id: 'a', title: 'Founder story', url: 'https://example.com/a', imgPreview: 'https://cdn.example.com/a.jpg', contentExcerpt: 'The story text', contentScope: 'partial-preview' },
           { id: 'b', title: 'Unsafe', url: 'javascript:alert(1)' },
+          { id: 'c', title: 'Credentials', url: 'https://user:secret@example.com/' },
         ] },
       } }],
     });

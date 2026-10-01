@@ -96,7 +96,7 @@ export const getSearchResultPreviews = (
       ) continue;
       try {
         const url = new URL(link.url);
-        if (url.protocol !== 'http:' && url.protocol !== 'https:') continue;
+        if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) continue;
       } catch {
         continue;
       }

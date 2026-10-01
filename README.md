@@ -37,14 +37,21 @@ npm run check
 
 `apps/web` has more setup detail in its README; `apps/api` documents its API and extraction pipeline. The app's external services require your own accounts and configuration. A local build or CI pass is not proof that those external integrations work in production.
 
-CI always runs both apps' tests, web TypeScript checks, and the API build. The web build runs in CI only when the new repository has a Clerk test publishable key configured as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`; GitHub does not transfer secrets from the old repository. Do not use production credentials to make CI pass.
+CI runs both apps' tests, web TypeScript checks, and the API build. The canonical repository also runs the web build with a Clerk **test** publishable key configured as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`. Forks without that key skip the web build but still run tests and type checks. Do not use production credentials to make CI pass.
 
 ## Deployment boundary
 
-The production website is [doryai.xyz](https://www.doryai.xyz). During migration, Vercel and Railway remain connected to the original source repositories. This repository is the new source home, **not** a completed hosting cutover. Before changing a provider's Git source, configure its root directory (`apps/web` or `apps/api`), preserve environment variables and domains, deploy Preview/dev, validate save and retrieval end-to-end, and only then switch production. See [the cutover checklist](docs/DEPLOYMENT_CUTOVER.md).
+The production website is [doryai.xyz](https://www.doryai.xyz). Vercel and Railway deploy from this repository's `main` branch:
+
+| Provider | Root directory | Responsibility |
+| --- | --- | --- |
+| Vercel | `apps/web` | Next.js and the configured Convex deployment |
+| Railway | `/apps/api` | API service in development and production |
+
+The existing domains, authentication, database, and billing settings were preserved during the 2026-10-01 source cutover. No user-data backfill or migration ran. Preview uses the configured `codex/search-v2` branch; do not assume an arbitrary branch has the same isolated environment settings. See [deployment and rollback notes](docs/DEPLOYMENT_CUTOVER.md).
 
 ## Source history and licensing
 
-This repository starts from clean snapshots of the two existing public repositories at the validated production release: [web/Convex](https://github.com/nestorxyz/clippo-link) and [API](https://github.com/nestorxyz/clippo-backend). Their full commit histories remain there. Do not archive them until the new repository and deployment cutover have been verified. DoryAI is licensed under [AGPL-3.0-only](LICENSE); see each app's existing notices and publication review for third-party assets and dependencies.
+This repository starts from clean snapshots of the two original public repositories at the validated production release: [web/Convex](https://github.com/nestorxyz/clippo-link) and [API](https://github.com/nestorxyz/clippo-backend). Their full commit histories remain there as read-only archives; new work belongs here. DoryAI is licensed under [AGPL-3.0-only](LICENSE); see each app's existing notices and publication review for third-party assets and dependencies.
 
 Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md). Please report security issues privately as described in [SECURITY.md](SECURITY.md).

@@ -1,0 +1,130 @@
+# DoryAI backend
+
+The private service boundary for DoryAI chat and content processing. It accepts
+authenticated service-to-service requests from Convex, calls Gemini, extracts
+supported media, and writes user-scoped results back through privileged Convex
+functions.
+
+The GitHub repository and package retain the historical `clippo-backend` name.
+DoryAI is the current product name.
+
+The cross-repository runtime and trust-boundary map lives in
+`../web-app/docs/ARCHITECTURE.md` in the shared local workspace.
+The in-progress saved-link search design, backfill gate, and release checks
+live in `../web-app/docs/SEARCH.md`; this feature is not in production yet.
+
+## Local setup
+
+Requirements: a current Node.js LTS release, npm, the web/Convex project in
+`../web-app`, and `ffmpeg` plus Python/yt-dlp for full Instagram/TikTok media
+processing. When Python is unavailable, the current implementation deliberately
+falls back to metadata-only results.
+
+```sh
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Set the same `CONVEX_BACKEND_SECRET` value in this `.env` and the Convex server
+environment. Never expose it to browser code or commit real values.
+
+## Environment
+
+```dotenv
+PORT=3000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+CONVEX_URL=https://replace-me.convex.cloud
+CONVEX_BACKEND_SECRET=replace-with-a-shared-random-secret
+GEMINI_API_KEY=replace_me
+FIRECRAWL_API_KEY=
+```
+
+`GOOGLE_AI_API_KEY` is accepted as a fallback for the social-media service, but
+`GEMINI_API_KEY` is the canonical variable. The process fails fast without the
+required Gemini or Convex configuration.
+
+`FIRECRAWL_API_KEY` is optional and server-only. When set, DoryAI uses
+Firecrawl once while saving a general public webpage, after the guarded native
+fetch has checked its target. It does not call Firecrawl for chat retrieval,
+social sources, background refresh, or URLs with credential-shaped query
+parameters. The basic proxy avoids automatic enhanced-proxy credit charges.
+When Firecrawl is unavailable, the native extractor saves bounded page text.
+Either path stores at most 20,000 characters of content.
+
+The X save path can read a bounded public-post text snapshot from X's
+oEmbed response when `X_SNAPSHOT_INGESTION_ENABLED=true` is set server-side;
+otherwise it keeps the guarded metadata fallback. It uses no paid X API. The
+flag is off by default in code. The tested post's oEmbed response contained no
+preview image. On this branch, a successful text snapshot also makes a
+bounded best-effort read of the same public post's Open Graph image. Only
+media hosted on X's image CDN is accepted; failure leaves the text save
+intact. This is a preview image, not media analysis, and does not repair
+existing records. On 2026-09-27 the flag was enabled in Railway
+development and production; a development save, Convex record readback, and
+grounded chat retrieval passed. Authenticated production save/readback remains
+unverified. The chat flow can also store copies of the text, and there is no
+edit/deletion refresh. See the [X ingestion boundary](docs/X-INGESTION.md):
+the current X content policy remains an unresolved release risk.
+
+## Commands
+
+```sh
+npm run dev
+npm run test
+npm run build
+npm run check
+npm run start
+```
+
+`npm run check` is the contributor quality gate: focused Node tests followed by
+strict TypeScript compilation.
+
+## Supported-source boundary
+
+`src/services/source-url.ts` classifies DoryAI roadmap sources without fetching
+them. Instagram Reels and TikTok videos currently use the specialized short
+video processor. YouTube videos and Shorts use bounded, cookie-free yt-dlp
+metadata plus manual captions when available, falling back to explicitly
+labeled automatic captions. When a Short has no captions, DoryAI reuses the
+existing bounded short-video audio transcription path; a failed audio fallback
+remains metadata-only. If YouTube blocks the server-side metadata process,
+DoryAI combines bounded oEmbed metadata with Gemini's direct public-YouTube
+video understanding to save a summary and transcript. If Gemini cannot analyze
+the video, the result is explicitly metadata-only. YouTube is never treated as
+a general webpage. Public LinkedIn posts use bounded preview text when it is
+available without sign-in. This is saved as a partial preview, not a full post;
+if no usable post text is available, the result is metadata-only. LinkedIn
+content is not re-scraped after saving. For new saves, a verified LinkedIn
+post redirect is stored as the direct post URL without share-tracking
+parameters; unverified or non-post redirects keep the submitted URL. This
+does not rewrite existing saved short links.
+X has a bounded public-embed adapter behind a disabled-by-default server flag,
+with guarded metadata fallback when it is off or the embed yields no text.
+Arbitrary HTTP(S) URLs use the general web-page boundary. That
+boundary pins each request and redirect to a validated public DNS address,
+accepts only standard HTTP(S) ports and HTML, and enforces timeout and
+response-size limits. The same guarded transport protects caption and remote
+thumbnail downloads.
+
+General webpages save deterministic page metadata plus bounded page text.
+Firecrawl main-content markdown is preferred during the save when configured;
+the native text is the fallback, not a clean article extraction. A successful
+fixture or read-only extraction check is not a live save/readback.
+
+Chat and direct quick-save inputs also accept a public domain without a scheme
+(for example, `www.make.ad/path`). DoryAI adds `https://` before analysis and
+persists the resulting absolute URL. Explicit `http://` and `https://` are
+preserved; malformed domains, credentials in the authority, and other schemes
+are rejected. Production acceptance of this input form requires a separate
+authenticated save/readback after deployment.
+
+## Security and publication
+
+- Requests to `/api/chat` must carry the shared backend secret and a valid
+  user/session identity from Convex.
+- Never log or commit environment values, user link contents, transcripts, or
+  production payloads.
+- Repository visibility, license selection, production deployment, billing,
+  and data migrations require explicit owner approval and external readback.

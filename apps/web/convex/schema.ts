@@ -1,0 +1,148 @@
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
+
+export default defineSchema({
+  users: defineTable({
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    image: v.optional(v.string()),
+    tokenIdentifier: v.optional(v.string()),
+    billingExternalId: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    ownerPremiumAccess: v.optional(
+      v.object({
+        grantedAt: v.number(),
+        expiresAt: v.optional(v.number()),
+        revokedAt: v.optional(v.number()),
+      }),
+    ),
+  })
+    .index('by_token', ['tokenIdentifier'])
+    .index('by_email', ['email'])
+    .index('by_billing_external_id', ['billingExternalId']),
+
+  categories: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    userId: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_user', ['userId']),
+
+  subCategories: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    categoryId: v.id('categories'),
+    userId: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_category', ['categoryId'])
+    .index('by_user', ['userId']),
+
+  links: defineTable({
+    url: v.string(),
+    normalizedUrl: v.optional(v.string()),
+    title: v.string(),
+    description: v.optional(v.string()),
+    imgPreview: v.optional(v.string()),
+    subCategoryId: v.optional(v.id('subCategories')),
+    userId: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    source: v.optional(v.string()),
+    content: v.optional(v.string()),
+    searchText: v.optional(v.string()),
+    contentScope: v.optional(
+      v.union(v.literal('partial-preview'), v.literal('metadata-only')),
+    ),
+    isFavorite: v.boolean(),
+    isReadLater: v.boolean(),
+  })
+    .index('by_subCategory', ['subCategoryId'])
+    .index('by_user', ['userId'])
+    .index('by_user_url', ['userId', 'normalizedUrl'])
+    .searchIndex('by_search_text', {
+      searchField: 'searchText',
+      filterFields: ['userId'],
+    }),
+
+  tags: defineTable({
+    name: v.string(),
+    color: v.string(),
+    userId: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_user', ['userId']),
+
+  linkTags: defineTable({
+    linkId: v.id('links'),
+    tagId: v.id('tags'),
+    createdAt: v.number(),
+  })
+    .index('by_link', ['linkId'])
+    .index('by_tag', ['tagId']),
+
+  chatSessions: defineTable({
+    userId: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    source: v.optional(v.string()), // 'web', 'whatsapp', etc.
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_source', ['userId', 'source']),
+
+  chatMessages: defineTable({
+    sessionId: v.id('chatSessions'),
+    role: v.string(),
+    parts: v.any(), // JSON content
+    contextLinkId: v.optional(v.id('links')),
+    createdAt: v.number(),
+  }).index('by_session', ['sessionId']),
+
+
+
+  subscriptions: defineTable({
+    userId: v.id('users'),
+    provider: v.optional(v.string()),
+    providerSubscriptionId: v.optional(v.string()),
+    providerCustomerId: v.optional(v.string()),
+    lemonSubscriptionId: v.optional(v.string()),
+    productId: v.optional(v.string()),
+    variantId: v.optional(v.string()),
+    customerId: v.optional(v.string()),
+    status: v.string(),
+    trialEndsAt: v.optional(v.number()),
+    renewsAt: v.number(),
+    currentPeriodStart: v.optional(v.number()),
+    providerEventTimestamp: v.optional(v.number()),
+    endsAt: v.optional(v.number()),
+    cardBrand: v.optional(v.string()),
+    cardLastFour: v.optional(v.string()),
+    updatePaymentMethodUrl: v.optional(v.string()),
+    customerPortalUrl: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_lemon_subscription_id', ['lemonSubscriptionId'])
+    .index('by_provider_subscription', [
+      'provider',
+      'providerSubscriptionId',
+    ]),
+
+  subscriptionWebhookEvents: defineTable({
+    provider: v.optional(v.string()),
+    providerEventId: v.optional(v.string()),
+    eventName: v.string(),
+    lemonObjectType: v.optional(v.string()),
+    lemonObjectId: v.optional(v.string()),
+    eventKey: v.string(),
+    rawPayload: v.any(),
+    signature: v.optional(v.string()),
+    receivedAt: v.number(),
+    duplicate: v.boolean(),
+  })
+    .index('by_event_key', ['eventKey'])
+    .index('by_provider_event', ['provider', 'providerEventId']),
+});

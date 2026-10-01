@@ -1,0 +1,257 @@
+import { safePreviewImage } from '../../lib/link-preview';
+
+export interface ChatRecord {
+  role: string;
+  parts: unknown;
+  contextLinkId?: string;
+}
+
+export type ActivationStep = 'save' | 'ready' | 'retrieve' | 'complete';
+
+export interface SearchResultPreview {
+  id: string;
+  title: string;
+  url: string;
+  imgPreview?: string;
+  excerpt?: string;
+  contentScope?: 'partial-preview' | 'metadata-only';
+}
+
+export interface SavedLinkPreview {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  imgPreview?: string;
+  hasContent: boolean;
+  contentScope?: 'partial-preview' | 'metadata-only';
+}
+
+type FunctionResponse = {
+  name?: unknown;
+  response?: Record<string, unknown>;
+};
+
+const responseStatus = ({ name, response = {} }: FunctionResponse): string => {
+  if (name === 'register_link') {
+    if (response.success !== true) {
+      return `Could not save the link: ${String(response.message ?? response.error ?? 'unknown error')}`;
+    }
+    const data = response.data as Record<string, unknown> | undefined;
+    if (data?.duplicate === true) return 'Link was already saved.';
+    if (data?.contentScope === 'partial-preview') {
+      return 'Link saved (partial LinkedIn preview; may be incomplete).';
+    }
+    if (data?.contentScope === 'metadata-only') {
+      return 'Link saved (LinkedIn metadata only; post text unavailable).';
+    }
+    return 'Link saved.';
+  }
+  if (name === 'get_url_info') {
+    if (response.success !== true) {
+      return `Could not analyze the link: ${String(response.error ?? 'unknown error')}`;
+    }
+    if (response.contentScope === 'partial-preview') {
+      return 'LinkedIn preview analyzed (may be incomplete).';
+    }
+    if (response.contentScope === 'metadata-only') {
+      return 'LinkedIn metadata analyzed (post text unavailable).';
+    }
+    return 'Link analyzed.';
+  }
+  if (name === 'get_links') {
+    if (response.error) return 'Could not search saved links. Please try again.';
+    const links = Array.isArray(response.links) ? response.links : [];
+    return links.length === 0
+      ? 'No saved links matched that search.'
+      : `Found ${links.length} saved ${links.length === 1 ? 'link' : 'links'}.`;
+  }
+  if (name === 'get_link') {
+    return response.success === true
+      ? 'Read saved link content.'
+      : 'Could not read that saved link.';
+  }
+  return '';
+};
+
+export const getSearchResultPreviews = (
+  record: ChatRecord,
+): SearchResultPreview[] => {
+  if (!Array.isArray(record.parts)) return [];
+  const previews: SearchResultPreview[] = [];
+  for (const part of record.parts) {
+    if (!part || typeof part !== 'object') continue;
+    const responsePart = (part as Record<string, unknown>).functionResponse;
+    if (!responsePart || typeof responsePart !== 'object') continue;
+    const { name, response } = responsePart as FunctionResponse;
+    if (name !== 'get_links' || !Array.isArray(response?.links)) continue;
+
+    for (const candidate of response.links.slice(0, 5)) {
+      if (!candidate || typeof candidate !== 'object') continue;
+      const link = candidate as Record<string, unknown>;
+      if (
+        typeof link.id !== 'string' ||
+        typeof link.title !== 'string' ||
+        typeof link.url !== 'string'
+      ) continue;
+      try {
+        const url = new URL(link.url);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') continue;
+      } catch {
+        continue;
+      }
+      previews.push({
+        id: link.id,
+        title: link.title,
+        url: link.url,
+        imgPreview: safePreviewImage(link.imgPreview),
+        excerpt:
+          typeof link.contentExcerpt === 'string'
+            ? link.contentExcerpt.slice(0, 160)
+            : typeof link.description === 'string'
+              ? link.description.slice(0, 160)
+              : undefined,
+        contentScope:
+          link.contentScope === 'partial-preview' ||
+          link.contentScope === 'metadata-only'
+            ? link.contentScope
+            : undefined,
+      });
+    }
+  }
+  return previews;
+};
+
+export const getSavedLinkPreview = (
+  record: ChatRecord,
+): SavedLinkPreview | null => {
+  if (!Array.isArray(record.parts)) return null;
+  for (const part of record.parts) {
+    if (!part || typeof part !== 'object') continue;
+    const responsePart = (part as Record<string, unknown>).functionResponse;
+    if (!responsePart || typeof responsePart !== 'object') continue;
+    const { name, response } = responsePart as FunctionResponse;
+    if (name !== 'register_link' || response?.success !== true) continue;
+    const data = response.data;
+    if (!data || typeof data !== 'object') continue;
+    const saved = data as Record<string, unknown>;
+    if (
+      saved.duplicate === true ||
+      typeof saved.id !== 'string' ||
+      typeof saved.url !== 'string'
+    ) continue;
+    let url: URL;
+    try {
+      url = new URL(saved.url);
+    } catch {
+      continue;
+    }
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password
+    ) continue;
+    const title = typeof saved.title === 'string' && saved.title.trim()
+      ? saved.title.trim().slice(0, 180)
+      : url.hostname;
+    return {
+      id: saved.id,
+      title,
+      url: url.toString(),
+      description: typeof saved.description === 'string'
+        ? saved.description.trim().slice(0, 240) || undefined
+        : undefined,
+      imgPreview: safePreviewImage(saved.img_preview),
+      hasContent: typeof saved.content === 'string' && Boolean(saved.content.trim()),
+      contentScope: saved.contentScope === 'partial-preview' ||
+        saved.contentScope === 'metadata-only'
+        ? saved.contentScope
+        : undefined,
+    };
+  }
+  return null;
+};
+
+export const suggestedSavedLinkQuestion = (): string =>
+  'What does this saved link say? If you only saved a partial preview or metadata, say so.';
+
+export const getSavedLinkPreviewsById = (
+  records: ChatRecord[],
+): Map<string, SavedLinkPreview> => {
+  const savedLinks = new Map<string, SavedLinkPreview>();
+  for (const record of records) {
+    const saved = getSavedLinkPreview(record);
+    if (saved) savedLinks.set(saved.id, saved);
+  }
+  return savedLinks;
+};
+
+export const formatChatRecord = (record: ChatRecord): string => {
+  if (!Array.isArray(record.parts)) return '';
+
+  return record.parts
+    .map((part: unknown) => {
+      if (!part || typeof part !== 'object') return '';
+      const value = part as Record<string, unknown>;
+      if (typeof value.text === 'string') return value.text;
+      if (value.functionResponse && typeof value.functionResponse === 'object') {
+        return responseStatus(value.functionResponse as FunctionResponse);
+      }
+      return '';
+    })
+    .filter(Boolean)
+    .join('\n');
+};
+
+export const getActivationStep = (
+  records: ChatRecord[],
+  hasSavedLinks = false,
+): ActivationStep => {
+  const newlySavedIds = new Set<string>();
+  let foundNewlySavedLink = false;
+
+  for (const record of records) {
+    if (record.role === 'user') {
+      foundNewlySavedLink = Boolean(
+        record.contextLinkId && newlySavedIds.has(record.contextLinkId),
+      );
+    }
+    if (!Array.isArray(record.parts)) continue;
+
+    for (const part of record.parts) {
+      if (!part || typeof part !== 'object') continue;
+      const value = part as Record<string, unknown>;
+      if (
+        foundNewlySavedLink &&
+        record.role === 'model' &&
+        typeof value.text === 'string' &&
+        value.text.trim()
+      ) return 'complete';
+      if (!value.functionResponse || typeof value.functionResponse !== 'object') {
+        continue;
+      }
+
+      const { name, response = {} } =
+        value.functionResponse as FunctionResponse;
+      if (name === 'register_link' && response.success === true) {
+        const data = response.data as Record<string, unknown> | undefined;
+        if (data?.duplicate !== true && typeof data?.id === 'string') {
+          newlySavedIds.add(data.id);
+        }
+      }
+
+      if (
+        newlySavedIds.size > 0 &&
+        name === 'get_links' &&
+        Array.isArray(response.links) &&
+        response.links.some((link) => link && typeof link === 'object' &&
+          newlySavedIds.has((link as Record<string, unknown>).id as string))
+      ) {
+        foundNewlySavedLink = true;
+      }
+    }
+  }
+
+  if (newlySavedIds.size > 0) return 'retrieve';
+  return hasSavedLinks ? 'ready' : 'save';
+};

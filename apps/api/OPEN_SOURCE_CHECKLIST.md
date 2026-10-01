@@ -1,0 +1,38 @@
+# Open-source readiness checklist
+
+This checklist prepares the repository; it does not authorize making it public.
+
+## Completed on 2026-09-14
+
+- [x] Accurate runtime, environment, architecture, and verification README.
+- [x] Secret-safe `.env.example` matching the current service boundary.
+- [x] Initial test and `npm run check` quality gate.
+- [x] CI definition for the quality gate.
+- [x] Contributor and security guidance.
+- [x] Current changed-file credential-pattern scan found no credential-shaped
+      values.
+- [x] Bounded Git-history string scan found only placeholder/empty examples for
+      the matched retired-provider and WhatsApp keys.
+- [x] `npm audit --audit-level=low` reports zero known vulnerabilities.
+- [x] Direct dependency manifests expose only MIT, Apache-2.0, or BSD-2-Clause
+      licenses; detailed evidence is in `DEPENDENCY_REVIEW.md`.
+- [x] Dedicated Gitleaks full-history scan completed with redacted output; the
+      sanitized review is in `SECURITY_HISTORY_REVIEW.md`.
+
+## Required before public visibility
+
+- [x] Owner selected AGPL-3.0-only on 2026-09-19; canonical `LICENSE` added and
+      package metadata aligned.
+- [ ] Rewrite the retired-provider reference from Git history and rerun Gitleaks
+      to zero unresolved findings.
+- [x] Inventory transitive dependency licenses and assets in
+      `PUBLICATION_RIGHTS_REVIEW.md`.
+- [ ] Replace or explicitly accept the unmaintained media wrapper and its
+      transitive package with missing license metadata.
+- [ ] Remove or document obsolete dependencies, routes, environment variables,
+      and provider references.
+- [ ] Document production deployment without exposing infrastructure secrets.
+- [ ] Enable private vulnerability reporting and appropriate branch protection.
+- [ ] Confirm CI on a pull request from a clean clone.
+- [x] Owner approved public visibility on 2026-09-15.
+- [ ] Verify GitHub's public readback and clean-clone setup flow.

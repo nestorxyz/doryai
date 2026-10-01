@@ -1,0 +1,174 @@
+import { extractWebPage, type WebPageExtraction } from './web-page-extractor';
+import {
+  classifySourceUrl,
+  describeSourceExtraction,
+  type SourceKind,
+} from './source-url';
+import { sameXPost, type XEmbedExtraction } from './x-embed.service';
+
+type RestrictedSourceKind = Extract<SourceKind, 'linkedin' | 'x'>;
+
+export interface RestrictedPlatformExtraction {
+  kind: RestrictedSourceKind;
+  platform: 'LinkedIn' | 'X';
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  summary: string;
+  content: string | null;
+  contentAvailable: boolean;
+  contentScope?: 'partial-preview' | 'metadata-only';
+  usedStrategy: 'x-oembed' | 'web-page' | 'url-only';
+  limitation: string;
+  failureCode: string | null;
+}
+
+export interface RestrictedPlatformDependencies {
+  extractPage?: (url: string) => Promise<WebPageExtraction>;
+  extractXPost?: (url: string) => Promise<XEmbedExtraction>;
+}
+
+const humanizeSlug = (value: string): string => {
+  try {
+    return decodeURIComponent(value)
+      .replace(/[-_]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  } catch {
+    return '';
+  }
+};
+
+const urlOnlyTitle = (url: URL, kind: RestrictedSourceKind): string => {
+  const parts = url.pathname.split('/').filter(Boolean);
+  if (kind === 'x') {
+    const username = parts[0];
+    return username && parts[1] === 'status'
+      ? `X post by @${username}`
+      : 'X link';
+  }
+
+  if (parts[0] === 'in' && parts[1]) {
+    const profileName = humanizeSlug(parts[1]);
+    if (profileName) return `LinkedIn profile: ${profileName}`;
+  }
+  return 'LinkedIn post';
+};
+
+const platformName = (kind: RestrictedSourceKind): 'LinkedIn' | 'X' =>
+  kind === 'linkedin' ? 'LinkedIn' : 'X';
+
+const xPostMediaImage = (value: string | null): string | null => {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' &&
+      url.hostname === 'pbs.twimg.com' &&
+      /^\/(?:media|ext_tw_video_thumb|amplify_video_thumb)\//.test(url.pathname)
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+export const extractRestrictedPlatform = async (
+  input: string,
+  dependencies: RestrictedPlatformDependencies = {},
+): Promise<RestrictedPlatformExtraction> => {
+  const source = classifySourceUrl(input);
+  if (source.kind !== 'linkedin' && source.kind !== 'x') {
+    throw new Error('URL must identify a LinkedIn or X resource');
+  }
+
+  const platform = platformName(source.kind);
+  const extractPage = dependencies.extractPage ?? extractWebPage;
+  if (source.kind === 'x' && dependencies.extractXPost !== undefined) {
+    try {
+      const post = await dependencies.extractXPost(source.normalizedUrl);
+      if (post.snippet.trim()) {
+        const author = post.handle ? `@${post.handle}` : post.authorName;
+        let imageUrl: string | null = null;
+        try {
+          const postUrl = new URL(source.normalizedUrl);
+          postUrl.search = '';
+          const page = await extractPage(postUrl.toString());
+          if (sameXPost(postUrl.toString(), page.finalUrl)) {
+            imageUrl = xPostMediaImage(page.imageUrl);
+          }
+        } catch {
+          // Media preview is optional; a blocked page must not discard text.
+        }
+        return {
+          kind: 'x',
+          platform,
+          title: `X post by ${author}: ${post.snippet.slice(0, 90)}`,
+          description: post.snippet,
+          imageUrl,
+          summary: post.snippet,
+          content: post.snippet,
+          contentAvailable: true,
+          usedStrategy: 'x-oembed',
+          limitation:
+            'This is a snapshot of public post text at save time; quotes, threads, and media were not analyzed',
+          failureCode: null,
+        };
+      }
+    } catch {
+      // The public embed can be unavailable; preserve the guarded page fallback.
+    }
+  }
+
+  try {
+    const page = await extractPage(source.normalizedUrl);
+    const linkedInContent = source.kind === 'linkedin' ? page.text : '';
+    return {
+      kind: source.kind,
+      platform,
+      title: page.title,
+      description: page.description,
+      imageUrl: page.imageUrl,
+      summary: page.description || page.text.slice(0, 500),
+      content: linkedInContent || null,
+      contentAvailable:
+        source.kind === 'linkedin' ? Boolean(linkedInContent) : true,
+      ...(source.kind === 'linkedin'
+        ? {
+            contentScope: linkedInContent
+              ? 'partial-preview'
+              : 'metadata-only',
+          }
+        : {}),
+      usedStrategy: 'web-page',
+      limitation:
+        source.kind === 'linkedin'
+          ? describeSourceExtraction(source.normalizedUrl, 'web-page')
+              .limitation ?? ''
+          : `Specialized ${source.kind} extraction is not implemented`,
+      failureCode: null,
+    };
+  } catch (error) {
+    const failureCode =
+      error instanceof Error && 'code' in error
+        ? String((error as Error & { code: unknown }).code)
+        : 'FETCH_FAILURE';
+    const title = urlOnlyTitle(new URL(source.normalizedUrl), source.kind);
+    const limitation = `${platform} content could not be extracted; URL-only metadata was used`;
+    return {
+      kind: source.kind,
+      platform,
+      title,
+      description: limitation,
+      imageUrl: null,
+      summary: limitation,
+      content: null,
+      contentAvailable: false,
+      ...(source.kind === 'linkedin'
+        ? { contentScope: 'metadata-only' }
+        : {}),
+      usedStrategy: 'url-only',
+      limitation,
+      failureCode,
+    };
+  }
+};

@@ -1,0 +1,17 @@
+{
+  "name": "doryai",
+  "private": true,
+  "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "install:all": "npm ci --prefix apps/web && npm ci --prefix apps/api",
+    "dev:web": "npm run dev --prefix apps/web",
+    "dev:api": "npm run dev --prefix apps/api",
+    "test": "npm run test --prefix apps/web && npm run test --prefix apps/api",
+    "build": "npm run build --prefix apps/web && npm run build --prefix apps/api",
+    "check": "npm run check --prefix apps/web && npm run check --prefix apps/api"
+  }
+}

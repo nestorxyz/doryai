@@ -52,3 +52,17 @@ Use the isolated Preview environment, not production:
 
 Authenticated Preview acceptance remains a separate user-review gate before
 any production release.
+
+## Processing-state scroll regression
+
+The first signed-in review exposed an integration gap in the static visual
+check: the bottom marker's `scrollIntoView` also scrolled an outer
+`overflow-hidden` dashboard container. This displaced the whole chat while
+tool records arrived, leaving the composer near the top and hiding answers.
+
+Auto-scroll now targets only the conversation viewport, after the deferred
+messages actually render. The chat clips its own contents, the viewport can
+shrink, and the composer is a non-shrinking flex footer rather than sticky
+inside several scrolling ancestors. Neither save processing nor the library
+is changed. Regression tests cover scoped scrolling and reduced motion;
+live acceptance must include a long conversation while a request processes.

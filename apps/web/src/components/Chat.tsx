@@ -42,6 +42,7 @@ import {
 import { ChatAnswer } from './chat/chat-answer';
 import { ChatComposer } from './chat/chat-composer';
 import { getChatTurns, followUpQuestions } from './chat/chat-turn';
+import { scrollChatToLatest } from './chat/chat-scroll';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
@@ -161,12 +162,10 @@ export const ChatConversation = memo(
   ({
     messages,
     isBotTyping,
-    messagesEndRef,
     onAskSavedLink,
   }: {
     messages: Message[];
     isBotTyping: boolean;
-    messagesEndRef: React.RefObject<HTMLDivElement>;
     onAskSavedLink: (question: string, savedLinkId: string) => void;
   }) => {
     const turns = useMemo(() => getChatTurns(messages), [messages]);
@@ -228,7 +227,6 @@ export const ChatConversation = memo(
         {isBotTyping && turns.at(-1)?.kind !== 'assistant' ? (
           <p className="flex items-center gap-2 text-sm text-gray-400" role="status"><Loader2 className="h-4 w-4 motion-safe:animate-spin" aria-hidden="true" />Working on your request…</p>
         ) : null}
-        <div ref={messagesEndRef} />
       </div>
     );
   },
@@ -296,7 +294,7 @@ const Chat = () => {
   );
 
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const conversationScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const deferredMessages = useDeferredValue(messages);
   const activationStep = useMemo(
@@ -332,10 +330,11 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
-    });
-  }, [messages, isBotTyping]);
+    scrollChatToLatest(
+      conversationScrollRef.current,
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    );
+  }, [deferredMessages, isBotTyping]);
 
   const sendMessage = useCallback(async (
     messageToSend: string,
@@ -392,7 +391,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
       {messages.length === 0 ? (
         // Blank State
         <div className="flex-1 flex flex-col items-center justify-center p-4 pb-20 fade-in zoom-in duration-500">
@@ -525,12 +524,11 @@ const Chat = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <div className="flex-1 overflow-y-auto">
+          <div ref={conversationScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-[720px] px-4 py-6">
               <ChatConversation
                 messages={deferredMessages}
                 isBotTyping={isBotTyping}
-                messagesEndRef={messagesEndRef}
                 onAskSavedLink={handleAskSavedLink}
               />
             </div>
@@ -538,7 +536,7 @@ const Chat = () => {
         </>
       )}
 
-      <div className="sticky bottom-0 z-10 border-t border-[#1D1D1D] bg-[#0A0A0A]/80 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
+      <div className="relative z-10 shrink-0 border-t border-[#1D1D1D] bg-[#0A0A0A]/80 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/60">
         <div className="pointer-events-none absolute inset-x-0 bottom-full h-8 bg-gradient-to-t from-[#0A0A0A] to-transparent" />
         <div className="relative mx-auto w-full max-w-[720px] px-4 py-4 pt-3 pb-[calc(8px+env(safe-area-inset-bottom))]">
           {(sessionError || requestError) && (

@@ -1,14 +1,17 @@
 # Polar billing migration
 
-Status: Polar-only implementation; sandbox activation still needs provider
-credentials and live verification.
+Status: Polar-only implementation. Hosted production activation requires
+production-scoped credentials and webhook configuration; source deployment
+alone does not enable billing.
 
-Last reviewed: 2026-09-15
+Last reviewed: 2026-10-02
 
 ## Current boundary
 
 DoryAI uses Polar exclusively. Incomplete configuration returns a
-service-unavailable response; it never falls back to another checkout.
+checkout recovery page; it never falls back to another checkout. The recovery
+page keeps the selected plan, offers a non-prefetched manual retry and a link
+back to the library, and never displays provider exception details.
 
 Polar defaults to its sandbox server. Production requires the explicit pair:
 
@@ -88,3 +91,22 @@ approved sandbox account and credentials:
 
 Only after those readbacks, existing-subscriber obligations, and approved legal
 copy are complete should `POLAR_SERVER=production` be configured.
+
+## Production activation checklist
+
+- Verify the existing production monthly/annual products and approved prices;
+  do not reuse sandbox product IDs or change commercial terms implicitly.
+- Store an organization token with only `checkouts:write` and
+  `customer_sessions:write` in Vercel's **Production** scope, along with both
+  product IDs and `POLAR_SERVER=production`. Choose token expiry deliberately
+  and keep a revocation/rotation owner.
+- Create a raw webhook targeting the production Convex `/polar` endpoint for
+  the seven events in `POLAR_SUBSCRIPTION_EVENT_TYPES`. Store its signing
+  secret only in the matching production Convex deployment.
+- Redeploy Vercel: adding environment variables does not update an existing
+  deployment. Verify the exact source commit and active environment scope.
+- Verify authenticated monthly and annual checkout creation without submitting
+  payment. A checkout redirect is not evidence of subscription activation.
+- Track payment, signed webhook delivery, duplicate handling, Premium state
+  and portal acceptance separately. Never manufacture a paid subscription to
+  make production acceptance pass.

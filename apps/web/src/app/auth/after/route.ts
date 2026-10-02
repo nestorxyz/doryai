@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
-import { createPolarCheckoutUrl, isBillingPlan } from '@/server/billing/polar';
+import { createPolarCheckoutUrl, isBillingPlan } from '../../../server/billing/polar';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -31,7 +31,11 @@ export async function GET(request: Request) {
     });
     return NextResponse.redirect(dest);
   } catch (error) {
-    console.error('Unable to create Polar checkout', error);
-    return NextResponse.json({ error: 'BILLING_UNAVAILABLE' }, { status: 503 });
+    console.error('Unable to create Polar checkout', {
+      name: error instanceof Error ? error.name : 'UnknownError',
+    });
+    const unavailableUrl = new URL('/billing/unavailable', origin);
+    unavailableUrl.searchParams.set('plan', plan);
+    return NextResponse.redirect(unavailableUrl);
   }
 }

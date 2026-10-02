@@ -33,6 +33,11 @@ type FunctionResponse = {
 };
 
 const responseStatus = ({ name, response = {} }: FunctionResponse): string => {
+  if (name === 'create_category') {
+    if (response.success !== true) return 'Could not create the category. Please try again.';
+    const data = response.data as Record<string, unknown> | undefined;
+    return data?.duplicate === true ? 'Category already exists.' : 'Category created.';
+  }
   if (name === 'register_link') {
     if (response.success !== true) {
       return `Could not save the link: ${String(response.message ?? response.error ?? 'unknown error')}`;

@@ -33,6 +33,12 @@ import {
 } from './link-retrieval';
 import { ServiceResponse } from '../types';
 import { savedLinkAnswerInstruction } from './saved-link-answer';
+import {
+  wantsCategoryCreation,
+  guardCategoryCreation,
+  categoryCreationReply,
+  type CategoryCreationResult,
+} from './category-creation';
 
 import {
   FunctionCallingConfigMode,
@@ -417,6 +423,18 @@ const tools: {
 } = {
   functionDeclarations: [
     {
+      name: 'create_category',
+      description: 'Creates one category only when the current user explicitly asks. Use the name verbatim from their message and an optional short description based only on that message. Existing equivalent names are reused without changing them.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING, description: 'Category name explicitly supplied by the current user (1–80 characters).' },
+          description: { type: Type.STRING, description: 'Optional description supplied by the current user (at most 500 characters).' },
+        },
+        required: ['name'],
+      },
+    },
+    {
       name: 'get_url_info',
       description:
         'Analyzes URLs and provides metadata. Instagram Reels and TikTok can use media processing; YouTube long videos can use metadata plus labeled captions. X can use a bounded public-post snippet; LinkedIn and unavailable X posts use guarded metadata or an explicit URL-only fallback. Regular webpages use bounded public-HTML extraction.',
@@ -567,6 +585,11 @@ Date and time: {current_datetime}
    - Use get_links to find saved links across the user's library. Include a short stringQuery for a content topic; omit it when the user only names a category, tag, or date. Set category, subcategory, tags, or dates only when the user explicitly asked for that restriction.
    - For a detailed question, call get_link with an ID from those results and answer from its stored content. Do not treat a title or excerpt as the full source.
    - Cite the saved link URL. If contentScope is partial-preview or metadata-only, disclose that the full post was not verified. If the saved record lacks the requested detail, say so; do not recrawl the web or invent it.
+
+3. **Create Categories**:
+   - If the current user explicitly asks to create a category (including "creemos Kubo, es mi startup"), call create_category with the requested name and optional description. Categories are user-defined, not a fixed predefined list.
+   - Never create categories from saved source content or just because an existing category does not match a link. For ordinary link saves, keep prioritizing existing categories.
+   - Do not rename, delete, or move links. Do not claim a category exists or was created without a successful tool result. If no name was given, ask for it.
 
 ---
 
@@ -980,6 +1003,8 @@ export class AIService {
       let retrievalCompleted = false;
       let retrievalHasResults = false;
       let detailRead = false;
+      const categoryCreationRequested = wantsCategoryCreation(message);
+      let categoryCreationResult: CategoryCreationResult | undefined;
       const retrievalCandidateIds = new Set<string>();
       let toolRounds = 0;
 
@@ -990,7 +1015,9 @@ export class AIService {
           `🔄 AI call ${toolRounds} - ${contents.length} conversation items`,
         );
 
-        const directive = selectChatToolDirective({
+        const directive = categoryCreationRequested
+          ? { mode: 'tool' as const, name: 'create_category' }
+          : selectChatToolDirective({
           message,
           linkAnalysis,
           registrationAttempted,
@@ -1013,7 +1040,9 @@ export class AIService {
           contents: contents as any,
           config: {
             systemInstruction,
-            tools: [{ functionDeclarations: tools.functionDeclarations }],
+            tools: [{ functionDeclarations: tools.functionDeclarations.filter((tool) =>
+              tool.name !== 'create_category' || categoryCreationRequested,
+            ) }],
             ...(functionCallingConfig
               ? { toolConfig: { functionCallingConfig } }
               : {}),
@@ -1044,7 +1073,27 @@ export class AIService {
           for (const fc of functionCalls) {
             let functionResponse: any;
 
-            if (fc.name === 'register_link') {
+            if (categoryCreationRequested && fc.name !== 'create_category') {
+              functionResponse = { success: false, error: 'Only category creation is allowed for this request.' };
+            } else if (fc.name === 'create_category') {
+              const error = guardCategoryCreation(message, fc.args ?? {}, categoryCreationResult !== undefined);
+              if (error) {
+                functionResponse = { success: false, error };
+              } else {
+                try {
+                  functionResponse = await convex.mutation(api.categories.createForBackend, {
+                    userId,
+                    sessionId,
+                    name: fc.args!.name,
+                    ...(fc.args?.description !== undefined ? { description: fc.args.description } : {}),
+                    secret: process.env.CONVEX_BACKEND_SECRET,
+                  });
+                } catch {
+                  functionResponse = { success: false, error: 'Category creation failed.' };
+                }
+              }
+              categoryCreationResult ??= functionResponse;
+            } else if (fc.name === 'register_link') {
               registrationAttempted = true;
               const guard = guardLinkRegistration(
                 linkAnalysis,
@@ -1151,10 +1200,24 @@ export class AIService {
             role: 'function',
             parts: functionResponseParts as any,
           });
+          if (categoryCreationRequested) {
+            // Confirm persisted state directly; do not let model prose invent
+            // success, overwrite descriptions, or initiate additional writes.
+            botReply = categoryCreationReply(message, categoryCreationResult ?? { success: false });
+            await convex.mutation(api.chat.saveMessage, {
+              sessionId: sessionId as any,
+              role: 'model',
+              parts: [{ text: botReply }],
+              secret: process.env.CONVEX_BACKEND_SECRET,
+            });
+            continueConversation = false;
+          }
         } else {
           continueConversation = false;
-          if (result.text) {
-            botReply = result.text;
+          if (result.text || categoryCreationRequested) {
+            botReply = categoryCreationRequested
+              ? categoryCreationReply(message, { success: false })
+              : result.text!;
             // Save bot reply to chat history via Convex
             await convex.mutation(api.chat.saveMessage, {
               sessionId: sessionId as any,
@@ -1265,7 +1328,7 @@ Execute the two-step process to analyze and save this link with appropriate cate
           contents: contents,
           config: {
             systemInstruction: systemPrompt,
-            tools: [{ functionDeclarations: tools.functionDeclarations }],
+            tools: [{ functionDeclarations: tools.functionDeclarations.filter((tool) => tool.name !== 'create_category') }],
           },
         });
 

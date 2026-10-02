@@ -9,6 +9,18 @@ import {
 } from './chat-message';
 
 describe('chat message status', () => {
+  it('renders persisted category creation, duplicates, and failures', () => {
+    for (const [response, expected] of [
+      [{ success: true, data: { id: 'category-a', name: 'Kubo', duplicate: false } }, 'Category created.'],
+      [{ success: true, data: { id: 'category-a', name: 'Kubo', duplicate: true } }, 'Category already exists.'],
+      [{ success: false, error: 'Invalid name' }, 'Could not create the category. Please try again.'],
+    ] as const) {
+      expect(formatChatRecord({ role: 'function', parts: [{
+        functionResponse: { name: 'create_category', response },
+      }] })).toBe(expected);
+    }
+  });
+
   it('renders successful and duplicate link outcomes', () => {
     expect(
       formatChatRecord({

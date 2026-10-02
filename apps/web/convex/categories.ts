@@ -1,6 +1,51 @@
 import { v } from 'convex/values';
-import { query, mutation } from './_generated/server';
+import { query, mutation, type MutationCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 import { getUserId } from './users';
+import { categoryNameKey, validateCategoryInput } from './lib/categoryInput';
+
+const getOrCreateCategory = async (
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  name: string,
+  description?: string,
+) => {
+  const input = validateCategoryInput(name, description);
+  const categories = await ctx.db.query('categories')
+    .withIndex('by_user', (q) => q.eq('userId', userId)).collect();
+  const existing = categories.find((category) =>
+    categoryNameKey(category.name) === categoryNameKey(input.name),
+  );
+  if (existing) return { id: existing._id, name: existing.name, description: existing.description, duplicate: true };
+
+  // The indexed read and insert share one Convex transaction, so retries and
+  // concurrent requests for this user's equivalent name cannot create copies.
+  const id = await ctx.db.insert('categories', {
+    ...input, userId, createdAt: Date.now(), updatedAt: Date.now(),
+  });
+  return { id, ...input, duplicate: false };
+};
+
+export const createForBackend = mutation({
+  args: {
+    userId: v.id('users'),
+    sessionId: v.id('chatSessions'),
+    name: v.string(),
+    description: v.optional(v.string()),
+    secret: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!process.env.CONVEX_BACKEND_SECRET || args.secret !== process.env.CONVEX_BACKEND_SECRET) {
+      throw new Error('Unauthorized: Invalid secret');
+    }
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || session.userId !== args.userId || !await ctx.db.get(args.userId)) {
+      throw new Error('Unauthorized or invalid session');
+    }
+    const data = await getOrCreateCategory(ctx, args.userId, args.name, args.description);
+    return { success: true, data };
+  },
+});
 
 export const getByUser = query({
   args: {
@@ -102,15 +147,8 @@ export const create = mutation({
     const userId = await getUserId(ctx);
     if (!userId) throw new Error('Unauthorized');
 
-    const categoryId = await ctx.db.insert('categories', {
-      name: args.name,
-      description: args.description,
-      userId,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-
-    return categoryId;
+    const category = await getOrCreateCategory(ctx, userId, args.name, args.description);
+    return category.id;
   },
 });
 

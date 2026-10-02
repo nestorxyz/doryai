@@ -7,7 +7,10 @@ if (!convexUrl) throw new Error('CONVEX_URL is required');
 
 export const convex = new ConvexHttpClient(convexUrl);
 export const api: any = {
-  categories: { getByUser: 'categories:getByUser' },
+  categories: {
+    getByUser: 'categories:getByUser',
+    createForBackend: 'categories:createForBackend',
+  },
   subCategories: { getByUser: 'subCategories:getByUser' },
   tags: { getByUser: 'tags:getByUser' },
   chat: {

@@ -82,3 +82,10 @@ for (const path of paths) {
 for (const path of paths)
   assert.ok(linkedPaths.has(path), `${path}: not orphaned`);
 console.log('All six public pages have internal links.');
+
+for (const stem of ['product', 'isologo-black', 'landing/personal-inspo', 'landing/tutorials', 'landing/research']) {
+  const image = await readFile(`public/${stem}.webp`);
+  assert.equal(image.toString('ascii', 0, 4), 'RIFF', `${stem}: WebP container`);
+  assert.equal(image.toString('ascii', 8, 12), 'WEBP', `${stem}: WebP signature`);
+}
+console.log('All five public WebP assets have valid format signatures.');

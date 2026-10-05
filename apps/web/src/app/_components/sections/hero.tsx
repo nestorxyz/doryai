@@ -30,7 +30,7 @@ export const HeroSection = () => (
       </div>
       <figure>
         <Image
-          src="/product.png"
+          src="/product.webp"
           alt="DoryAI dashboard with a visual saved-link library beside the chat"
           width={3014}
           height={1572}

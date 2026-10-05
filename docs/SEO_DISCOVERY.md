@@ -35,10 +35,17 @@ it does not invent credentials, customer counts, reviews or endorsements.
 The homepage uses a real product screenshot and explains capture limits,
 replacing the simulated "Live demo" and broad marketing claims.
 
-Navigation and footer link every public page. Images use Next.js optimization
-with explicit dimensions and responsive sizes. WebP negotiation and rendered
-layout still require deployed verification; source PNGs remain suitable for
-logos and social cards. No unsupported performance guarantee is made.
+Navigation and footer link every public page. Five public images were converted
+to WebP at their original dimensions (lossless for the logo and product UI).
+Feature illustrations use quality 85 and Next.js responsive optimization. PNG
+originals remain available, including the existing compatible social card.
+Deployed rendering and performance still need separate checks; a smaller image
+file does not prove a sub-two-second load or passing field Core Web Vitals.
+
+The five original PNGs total 516,447 bytes; their WebP versions total 146,376
+bytes (about 72% smaller). The product screenshot is 42% smaller losslessly;
+feature illustrations are 81–87% smaller. These are source-file measurements,
+not browser transfer totals or load-time measurements.
 
 Production wildcard crawl rules allow public pages and exclude private auth,
 dashboard, sign-in, billing, sharing and API prefixes. Preview/local pages
@@ -76,6 +83,25 @@ robots.txt is not an access control. Saved libraries never enter the sitemap.
    the exact deployed SHA and canonical origin, and recheck crawl policy.
 5. Recheck the submitted sitemap report after Google processes it. New pages
    cannot be submitted for production indexing before they exist there.
+
+### First Preview verification on 2026-10-04
+
+The first SEO revision `69b8f31` passed all 79 web tests, TypeScript, the
+23-route build, generated-HTML checks, secret scanning and full two-app CI
+`37260297699`. Web-only Preview `dpl_E5pHz3oMDZPz6iWdrguim1wKuej8` reached
+Ready. Desktop 1280px and mobile 390px checks found no horizontal overflow;
+all six public pages rendered correct metadata and one H1. Mobile navigation
+and a native FAQ disclosure worked with keyboard input. The image-format
+follow-up adds the measured WebP files and needs its own final Preview readback.
+
+Provider inspection confirms production remains `93021b5` and its general
+Convex build command is unchanged. An initial Preview attempt used that
+general command and failed; the successful attempt explicitly used
+`npm run build` and branch-scoped development public configuration. Raw
+Preview crawl endpoints return a Vercel authentication redirect/noindex to
+anonymous requests, so their deployed bodies were not independently fetched.
+Generated crawl artifacts and rendered page noindex were verified instead;
+recheck anonymous public endpoints after an approved production release.
 
 ## Follow-up work and success measures
 

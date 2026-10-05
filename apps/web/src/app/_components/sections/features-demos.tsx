@@ -12,19 +12,19 @@ const DEFAULT_FEATURES: FeatureItem[] = [
     title: 'Organize personal inspiration: travel, gifts, hobbies',
     description:
       'Collect travel destinations, gift ideas, recipes, and hobby resources. Make your personal interests easily accessible.',
-    imageUrl: '/landing/personal-inspo.png',
+    imageUrl: '/landing/personal-inspo.webp',
   },
   {
     title: 'Collect tutorials, components, tools, tweets',
     description:
       'Build your toolkit of helpful tutorials, code snippets, design components, and insightful tweets for future reference.',
-    imageUrl: '/landing/tutorials.png',
+    imageUrl: '/landing/tutorials.webp',
   },
   {
     title: 'Store research for school, work, or content',
     description:
       'Keep articles and resources together by project or topic, then ask about the content DoryAI captured.',
-    imageUrl: '/landing/research.png',
+    imageUrl: '/landing/research.webp',
   },
 ];
 

@@ -19,7 +19,7 @@ export const NavigationHeader = () => {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <Image
-              src="/isologo-black.png"
+              src="/isologo-black.webp"
               alt="DoryAI Logo"
               width={599}
               height={167}

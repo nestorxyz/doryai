@@ -20,7 +20,7 @@ export const Footer = () => (
     <div className="container mx-auto grid gap-8 px-6 py-12 md:grid-cols-2">
       <div>
         <Image
-          src="/isologo-black.png"
+          src="/isologo-black.webp"
           alt="DoryAI"
           width={599}
           height={167}

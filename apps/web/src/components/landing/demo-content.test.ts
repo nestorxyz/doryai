@@ -3,18 +3,28 @@ import { demoDisclosure, demoLinks, findDemoLink } from "./demo-content";
 import { publicSitemap } from "../../lib/public-seo";
 
 describe("landing example library", () => {
-  it("has distinct questions and sources with stable selection identities", () => {
+  it("has distinct video examples with stable selection identities", () => {
     expect(demoLinks).toHaveLength(3);
-    for (const field of ["id", "question", "url"] as const)
+    for (const field of ["id", "question", "platform"] as const)
       expect(new Set(demoLinks.map((link) => link[field])).size).toBe(3);
     for (const link of demoLinks) {
       expect(findDemoLink(link.id)).toBe(link);
-      const url = new URL(link.url);
-      expect(url.protocol).toBe("https:");
-      expect(url.hostname).toBe(link.domain);
+      expect(link.capture).toContain("Example");
+      expect(link.coverTitle).toContain("\n");
       expect(link.answer.length).toBeGreaterThan(80);
       expect(link.answer.length).toBeLessThan(400);
     }
+  });
+
+  it("covers Reels, Shorts and TikTok without inventing real post URLs", () => {
+    expect(demoLinks.map((link) => link.format)).toEqual([
+      "Instagram Reel",
+      "YouTube Short",
+      "TikTok",
+    ]);
+    expect(demoLinks.every((link) => !("url" in link))).toBe(true);
+    expect(demoLinks[0].answer).toContain("Only the caption");
+    expect(demoLinks[2].answer).toContain("not a transcript");
   });
 
   it("reset and unrecognized selections do not return an unrelated source", () => {
@@ -26,6 +36,8 @@ describe("landing example library", () => {
     expect(demoDisclosure).toContain("prepared answers");
     expect(demoDisclosure).toContain("No live AI");
     expect(demoDisclosure).toContain("No live AI, account or saving");
+    expect(demoDisclosure).toContain("Fictional clips");
+    expect(demoDisclosure).toContain("not real posts or playable videos");
   });
 
   it("keeps the review route out of the public discovery index", () => {

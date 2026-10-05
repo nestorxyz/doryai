@@ -138,13 +138,18 @@ assert.equal(
   "Review canonical remains the homepage",
 );
 for (const text of [
-  "Good links deserve",
-  "Your example library",
+  "Save the video.",
+  "Your example video library",
   "No live AI",
   "Reset demo",
-  "Maker’s Schedule",
-  "Thinking in React",
-  "CSS grid layout",
+  "Instagram Reels",
+  "YouTube Shorts",
+  "TikTok",
+  "The one-pan pasta idea",
+  "One clear hook, not three",
+  "Two ways to frame a shot",
+  "Fictional clips",
+  "not real posts or playable videos",
 ]) {
   assert.ok(landing.includes(text), `New landing SSR: ${text}`);
 }

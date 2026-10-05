@@ -157,6 +157,32 @@
   max-width: 630px;
   margin: auto !important;
 }
+.videoPlatforms {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 24px;
+  margin: 21px auto 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+.videoPlatforms li {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+}
+.videoPlatforms svg,
+.coverPlatform svg,
+.sourceMark svg {
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+}
+.videoPlatforms li > span {
+  display: inline-flex;
+}
 .heroActions {
   display: flex;
   justify-content: center;
@@ -325,20 +351,20 @@
 .cover {
   display: flex;
   flex-direction: column;
-  height: 224px;
+  aspect-ratio: 9 / 16;
   padding: 15px;
   position: relative;
   overflow: hidden;
 }
-.schedule {
+.recipe {
   background: #e9a382;
   color: #49251f;
 }
-.components {
+.hook {
   background: #bed4df;
   color: #244855;
 }
-.grid {
+.framing {
   background: #d7dfbb;
   color: #3f492a;
 }
@@ -349,85 +375,106 @@
   font-weight: 600;
   letter-spacing: 0.05em;
 }
+.coverPlatform {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.coverPlatform svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
 .coverTitle {
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(20px, 2vw, 27px);
   line-height: 1.1;
   letter-spacing: -0.035em;
   margin-top: auto;
+  white-space: pre-line;
+  margin-bottom: 10px;
 }
-.scheduleArt {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  margin: 18px 0 20px;
-  transform: rotate(-8deg);
-  padding: 6px 13px;
-}
-.scheduleArt i {
+.videoArt {
   display: block;
-  height: 11px;
-  border: 1px solid #61342c;
-}
-.scheduleArt i:nth-child(2) {
-  height: 39px;
-  background: #61342c;
-}
-.scheduleArt i:last-child {
-  width: 60%;
-}
-.componentArt {
-  display: block;
-  height: 95px;
+  width: 100%;
+  aspect-ratio: 1;
   position: relative;
-  margin: 18px 0;
+  margin: auto 0;
+  flex-shrink: 0;
 }
-.componentArt i {
+.videoArt i {
   position: absolute;
   display: block;
-  border: 1px solid #477588;
-  border-radius: 3px;
-  background: #e0ecf0;
-  width: 61%;
-  height: 49px;
+  border: 1px solid currentColor;
 }
-.componentArt i:nth-child(1) {
+.recipe .videoArt i:first-child {
+  border-radius: 50%;
+  width: 75%;
+  aspect-ratio: 1;
   left: 4%;
-  top: 0;
+  top: 5%;
+  border: 6px double currentColor;
 }
-.componentArt i:nth-child(2) {
-  right: 1%;
-  top: 24px;
-  background: #477588;
+.recipe .videoArt i:nth-child(2) {
+  height: 14%;
+  width: 38%;
+  right: 0;
+  top: 50%;
+  background: currentColor;
+  transform: rotate(32deg);
+  border-radius: 3px;
 }
-.componentArt i:nth-child(3) {
+.recipe .videoArt i:last-child {
+  border: 0;
+  width: 42%;
+  height: 14%;
+  border-top: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  left: 22%;
+  top: 36%;
+  transform: rotate(-14deg);
+}
+.hook .videoArt i {
+  width: 74%;
+  height: 18%;
   left: 8%;
-  top: 47px;
-  background: #a0c0cd;
+  border-radius: 4px;
+  transform: rotate(-5deg);
 }
-.gridArt {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 30px 44px 21px;
-  gap: 5px;
-  margin: 18px 0;
-  transform: rotate(6deg);
+.hook .videoArt i:first-child {
+  top: 10%;
+  height: 32%;
+  background: currentColor;
 }
-.gridArt i {
-  display: block;
-  border: 1px solid #748552;
-  background: #e7edd5;
+.hook .videoArt i:nth-child(2) {
+  top: 51%;
 }
-.gridArt i:first-child {
-  grid-column: span 3;
-  background: #748552;
+.hook .videoArt i:last-child {
+  top: 77%;
+  width: 46%;
 }
-.gridArt i:nth-child(3) {
-  grid-column: span 2;
+.framing .videoArt i:first-child {
+  inset: 6% 3% 17%;
+  border-radius: 5px;
 }
-.gridArt i:last-child {
-  grid-column: span 2;
-  background: #b5c393;
+.framing .videoArt i:nth-child(2) {
+  width: 27%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  left: 18%;
+  top: 29%;
+  background: currentColor;
+}
+.framing .videoArt i:last-child {
+  width: 38%;
+  height: 33%;
+  right: 12%;
+  bottom: 23%;
+  transform: skew(-18deg);
 }
 .cardDetails {
   display: flex;
@@ -552,15 +599,8 @@
   border-radius: 6px;
   background: #fff;
 }
-.sourceReference:hover {
-  border-color: #88867b;
-}
 .sourceReference > span:nth-child(2) {
   min-width: 0;
-}
-.sourceReference > span:last-child {
-  margin-left: auto;
-  font-size: 12px;
 }
 .sourceNumber {
   display: grid;
@@ -722,6 +762,18 @@
   width: 34px;
   flex-shrink: 0;
   line-height: 1.5;
+}
+.sourceMark svg {
+  width: 26px;
+  height: 26px;
+}
+.alsoLinks {
+  max-width: 740px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  padding: 0 24px;
+  margin: -65px auto 90px !important;
 }
 .sourceRow h3 {
   font-size: 15px;
@@ -935,7 +987,7 @@
     grid-template-columns: 1fr;
   }
   .cover {
-    height: 220px;
+    height: auto;
   }
   .coverTitle {
     font-size: 30px;
@@ -943,21 +995,9 @@
   .coverEyebrow {
     font-size: 9px;
   }
-  .scheduleArt {
+  .videoArt {
     max-width: 150px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-  }
-  .componentArt {
-    width: 140px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .gridArt {
-    width: 150px;
-    margin-left: auto;
-    margin-right: auto;
+    align-self: center;
   }
   .cardTitle {
     font-size: 13px;
@@ -1046,6 +1086,15 @@
     font-size: 15px;
     max-width: 360px;
   }
+  .videoPlatforms {
+    font-size: 10px;
+    gap: 10px 15px;
+    margin-top: 17px;
+  }
+  .videoPlatforms svg {
+    width: 14px;
+    height: 14px;
+  }
   .desktopBreak {
     display: none;
   }
@@ -1107,46 +1156,25 @@
     gap: 7px;
   }
   .cover {
-    height: 157px;
+    height: auto;
+    aspect-ratio: 9 / 18;
     padding: 10px;
   }
   .coverEyebrow {
     font-size: 6px;
     letter-spacing: 0;
   }
-  .coverTitle {
-    font-size: clamp(16px, 4.5vw, 24px);
-  }
-  .scheduleArt {
-    margin: 15px 0 9px;
-    padding: 0;
+  .coverPlatform {
+    font-size: 7px;
     gap: 4px;
   }
-  .scheduleArt i {
-    height: 6px;
+  .coverPlatform svg {
+    width: 12px;
+    height: 12px;
   }
-  .scheduleArt i:nth-child(2) {
-    height: 24px;
-  }
-  .componentArt {
-    width: 100%;
-    height: 61px;
-    margin: 12px 0 8px;
-  }
-  .componentArt i {
-    height: 30px;
-  }
-  .componentArt i:nth-child(2) {
-    top: 14px;
-  }
-  .componentArt i:nth-child(3) {
-    top: 27px;
-  }
-  .gridArt {
-    width: 100%;
-    grid-template-rows: 18px 28px 13px;
-    gap: 3px;
-    margin: 14px 0 10px;
+  .coverTitle {
+    font-size: clamp(13px, 4vw, 20px);
+    margin-bottom: 8px;
   }
   .cardDetails {
     padding: 8px;
@@ -1214,6 +1242,10 @@
     gap: 30px;
     margin: 0 16px 55px;
     padding: 30px 25px;
+  }
+  .alsoLinks {
+    font-size: 12px;
+    margin: -25px auto 55px !important;
   }
   .plans {
     grid-template-columns: 1fr;

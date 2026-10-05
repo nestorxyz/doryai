@@ -4,45 +4,46 @@ import { PAID_PLAN_COPY } from "@/lib/billing-copy";
 import { builderUrl, productFaqs, sourceUrl } from "@/lib/public-content";
 import { faqSchema, productSchema } from "@/lib/public-seo";
 import { JsonLd } from "@/app/_components/public-page";
+import { SOCIAL_PLATFORMS } from "@/lib/social-platforms";
 import { LandingDemo } from "./landing-demo";
 import styles from "./landing.module.css";
 
 const workflow = [
   {
     number: "01",
-    title: "Keep what catches your eye.",
-    text: "An article. A video. A post you want to come back to. Paste the link into DoryAI’s chat.",
+    title: "Copy the video’s link.",
+    text: "Found a Reel, Short or TikTok worth keeping? Copy its link and paste it into DoryAI’s chat. No more sending it to yourself and losing it.",
   },
   {
     number: "02",
-    title: "Let it find a home.",
+    title: "Give the idea a home.",
     text: "DoryAI organizes the available content with categories and tags. Your library stays browsable, too.",
   },
   {
     number: "03",
-    title: "Come back with a question.",
-    text: "Ask using the details you remember, or select a link to explore its saved content. The source stays within reach.",
+    title: "Find it without the scrolling.",
+    text: "“That Reel with the pasta.” “The Short about video hooks.” Ask using what you remember, then open the original link or explore what DoryAI could save.",
   },
 ];
 
 const sourceTypes = [
   {
-    label: "Webpages",
-    mark: "↗",
+    label: "Instagram Reels",
+    mark: "Instagram",
     detail:
-      "Articles, references and useful pages. Readable text and metadata when available.",
+      "Keep the Reel’s link and available context. Captured text may be a caption, a preview or richer content when accessible.",
   },
   {
-    label: "YouTube",
-    mark: "▶",
+    label: "YouTube Shorts & videos",
+    mark: "YouTube",
     detail:
       "Videos and Shorts. Captured content may include a transcript, depending on the video.",
   },
   {
-    label: "Social links",
-    mark: "@",
+    label: "TikTok",
+    mark: "TikTok",
     detail:
-      "Public text or a partial preview when accessible. Media, threads and private posts aren’t guaranteed.",
+      "Save the link and accessible context. A saved TikTok doesn’t always include its audio, on-screen text or complete video.",
   },
 ];
 
@@ -94,23 +95,42 @@ export function LandingPage() {
           Log in <span aria-hidden="true">↗</span>
         </Link>
       </header>
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <section className={styles.hero} aria-labelledby="hero-title">
           <p className={styles.eyebrow}>
-            <span aria-hidden="true" />A little less searching. A little more
-            finding.
+            <span aria-hidden="true" />
+            For the videos worth coming back to
           </p>
           <h1 id="hero-title">
-            Good links deserve
-            <br />a <span className={styles.highlight}>second look.</span>
+            Save the video.
+            <br />
+            Find <span className={styles.highlight}>the idea.</span>
           </h1>
           <p className={styles.heroDescription}>
-            Save what interests you. Find it later by asking.
-            <br className={styles.desktopBreak} /> Your own corner of the
-            internet, with a better memory.
+            Keep the Reel, Short or TikTok that made you stop scrolling.
+            <br className={styles.desktopBreak} /> Find it later with the
+            details you remember.
           </p>
+          <ul className={styles.videoPlatforms} aria-label="Video platforms">
+            {sourceTypes.map((source) => (
+              <li key={source.mark}>
+                <span aria-hidden="true">
+                  {
+                    SOCIAL_PLATFORMS.find(
+                      (platform) => platform.name === source.mark,
+                    )?.icon
+                  }
+                </span>
+                {source.mark === "Instagram"
+                  ? "Instagram Reels"
+                  : source.mark === "YouTube"
+                    ? "YouTube Shorts"
+                    : "TikTok"}
+              </li>
+            ))}
+          </ul>
           <div className={styles.heroActions}>
-            <StartLink>Start your library</StartLink>
+            <StartLink>Save your first video</StartLink>
             <a href="#try-demo" className={styles.textButton}>
               Explore the example <span aria-hidden="true">↓</span>
             </a>
@@ -123,17 +143,16 @@ export function LandingPage() {
           <LandingDemo />
         </div>
         <section className={styles.manifesto} aria-labelledby="manifesto-title">
-          <p className={styles.eyebrow}>
-            For the things you don’t want to lose
-          </p>
+          <p className={styles.eyebrow}>Less “I know I saved it somewhere”</p>
           <h2 id="manifesto-title">
-            Not another tab you’ll forget.
-            <br />A thought you can <em>come back to.</em>
+            More than a saved video.
+            <br />
+            An idea you can <em>use later.</em>
           </h2>
           <p>
-            The essay that changed your mind. The tutorial for your next
-            project. The idea you’re not ready to use yet. Give them somewhere
-            to live—and a way back.
+            The recipe you want to try. The editing tip for your next video. The
+            advice that clicked in thirty seconds. Keep those finds in one
+            library, instead of hunting through three different feeds.
           </p>
         </section>
         <section
@@ -143,7 +162,7 @@ export function LandingPage() {
         >
           <div className={styles.sectionHeading}>
             <p className={styles.eyebrow}>A small habit. A useful memory.</p>
-            <h2 id="workflow-title">Save. Settle. Rediscover.</h2>
+            <h2 id="workflow-title">Scroll. Save. Rediscover.</h2>
             <Link href="/how-it-works" className={styles.inlineLink}>
               The details behind the demo <span aria-hidden="true">↗</span>
             </Link>
@@ -161,17 +180,18 @@ export function LandingPage() {
         <section className={styles.sources} aria-labelledby="sources-title">
           <div className={styles.sourceHeading}>
             <p className={styles.eyebrow}>
-              A link is not always the whole story
+              Your favorite feeds. One place to find them.
             </p>
             <h2 id="sources-title">
-              Keep the context.
+              Keep the link.
               <br />
-              Know what was captured.
+              Know what came with it.
             </h2>
             <p>
-              DoryAI answers from what it could save. If a site only offers a
-              preview, that’s what you get—not an invented version of the full
-              content.
+              Finding a video and understanding every second are different
+              things. DoryAI answers from what it could capture: metadata, a
+              preview or fuller content when available. It won’t invent the
+              missing parts.
             </p>
             <Link href="/security" className={styles.inlineLink}>
               Our boundaries, in plain language ↗
@@ -181,7 +201,11 @@ export function LandingPage() {
             {sourceTypes.map((source) => (
               <div key={source.label} className={styles.sourceRow}>
                 <span className={styles.sourceMark} aria-hidden="true">
-                  {source.mark}
+                  {
+                    SOCIAL_PLATFORMS.find(
+                      (platform) => platform.name === source.mark,
+                    )?.icon
+                  }
                 </span>
                 <div>
                   <h3>{source.label}</h3>
@@ -191,6 +215,9 @@ export function LandingPage() {
             ))}
           </div>
         </section>
+        <p className={styles.alsoLinks}>
+          Articles, webpages, X and LinkedIn links still have a home here, too.
+        </p>
         <section
           className={styles.pricing}
           id="pricing"
@@ -279,11 +306,11 @@ export function LandingPage() {
         <section className={styles.lastCall} aria-labelledby="last-call-title">
           <p className={styles.eyebrow}>Leave a trail for your future self</p>
           <h2 id="last-call-title">
-            Your next good find
+            That video you’ll want later?
             <br />
-            doesn’t have to get lost.
+            Give it a place to live.
           </h2>
-          <StartLink>Save your first link</StartLink>
+          <StartLink>Save your first video</StartLink>
         </section>
         <JsonLd data={productSchema()} />
         <JsonLd data={faqSchema()} />

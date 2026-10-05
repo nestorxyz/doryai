@@ -1,58 +1,62 @@
 export type DemoLink = {
   id: string;
   title: string;
-  author: string;
-  domain: string;
-  url: string;
+  platform: "Instagram" | "YouTube" | "TikTok";
+  format: "Instagram Reel" | "YouTube Short" | "TikTok";
+  capture: string;
   category: string;
-  artwork: "schedule" | "components" | "grid";
+  artwork: "recipe" | "hook" | "framing";
+  coverTitle: string;
   question: string;
   answer: string;
 };
 
-// Curated, public-source summaries. This is an illustrative demo, not a user
-// library, extraction result, live search or generated AI response.
+// Fictional clips with prepared answers, not actual creators' posts, an
+// extraction result, live search or a private user library. No fake source URLs.
 export const demoLinks: readonly DemoLink[] = [
   {
-    id: "schedule",
-    title: "Maker’s Schedule, Manager’s Schedule",
-    author: "Paul Graham",
-    domain: "paulgraham.com",
-    url: "https://paulgraham.com/makersschedule.html",
-    category: "Work & focus",
-    artwork: "schedule",
-    question: "Find that essay about meetings and deep work.",
+    id: "recipe",
+    title: "The one-pan pasta idea",
+    platform: "Instagram",
+    format: "Instagram Reel",
+    capture: "Example · caption only",
+    category: "Recipes",
+    artwork: "recipe",
+    coverTitle: "One pan.\nLess cleanup.",
+    question: "Find that Reel with the one-pan pasta.",
     answer:
-      "That’s Paul Graham’s essay on maker and manager schedules. Managers divide the day into short appointments; makers need long, uninterrupted blocks. A meeting can fragment those blocks and make creative work harder.",
+      "Here’s the one-pan pasta Reel in this example library. The sample saved caption mentions cooking the pasta and sauce together in one pan. Only the caption is available here, so I can’t confirm ingredient quantities or the video’s steps.",
   },
   {
-    id: "components",
-    title: "Thinking in React",
-    author: "React documentation",
-    domain: "react.dev",
-    url: "https://react.dev/learn/thinking-in-react",
-    category: "Building things",
-    artwork: "components",
-    question: "What was that guide to breaking a UI into components?",
+    id: "hook",
+    title: "One clear hook, not three",
+    platform: "YouTube",
+    format: "YouTube Short",
+    capture: "Example · transcript excerpt",
+    category: "Content ideas",
+    artwork: "hook",
+    coverTitle: "One idea.\nThen the story.",
+    question: "What did that Short say about opening a video?",
     answer:
-      "You’re thinking of “Thinking in React.” It starts with a component hierarchy, builds a static version, then identifies the minimal state, decides where that state belongs, and connects the data flow.",
+      "The sample transcript for this Short says to open with one clear idea, then build the story around it. It contrasts a focused opening with introducing three ideas at once. That’s the excerpt included in this example, not a live analysis of a video.",
   },
   {
-    id: "grid",
-    title: "CSS grid layout",
-    author: "MDN Web Docs",
-    domain: "developer.mozilla.org",
-    url: "https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout",
-    category: "Building things",
-    artwork: "grid",
-    question: "Find the layout reference with rows and columns.",
+    id: "framing",
+    title: "Two ways to frame a shot",
+    platform: "TikTok",
+    format: "TikTok",
+    capture: "Example · metadata only",
+    category: "Video making",
+    artwork: "framing",
+    coverTitle: "Same scene.\nA new angle.",
+    question: "Find the TikTok about framing a shot.",
     answer:
-      "That’s MDN’s CSS grid layout guide. Grid is a two-dimensional layout system: it arranges content in rows and columns, with controls for track sizing, placement and alignment.",
+      "This example TikTok is titled “Two ways to frame a shot” and filed under Video making. Only sample metadata is available, not a transcript or the video itself, so I can find the link but can’t describe the techniques it demonstrates.",
   },
 ];
 
 export const demoDisclosure =
-  "Illustrated cards and prepared answers from three public sources. No live AI, account or saving in this demo.";
+  "Fictional clips, illustrated covers and prepared answers—not real posts or playable videos. No live AI, account or saving in this demo.";
 
 export function findDemoLink(id: string | null): DemoLink | undefined {
   return demoLinks.find((link) => link.id === id);

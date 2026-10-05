@@ -1,4 +1,5 @@
 import { NavigationHeader } from '../../_components/sections/navigation';
+import { Breadcrumbs } from '../../_components/public-page';
 
 export function CurrentSecurityPage() {
   return (
@@ -6,6 +7,7 @@ export function CurrentSecurityPage() {
       <NavigationHeader />
       <main className="min-h-screen bg-white text-black">
         <article className="prose prose-neutral mx-auto max-w-4xl px-6 py-10 lg:py-14">
+          <Breadcrumbs path="/security" />
           <header className="mb-10">
             <h1>Security at DoryAI</h1>
             <p className="text-sm text-gray-500">Reviewed September 15, 2026</p>
@@ -64,10 +66,6 @@ export function CurrentSecurityPage() {
             <li>
               LinkedIn and X may block extraction. DoryAI records a limited,
               labeled result instead of claiming unavailable post content.
-            </li>
-            <li>
-              Publication remains blocked until the historical credential
-              finding, license choice, and asset-rights review are resolved.
             </li>
           </ul>
 

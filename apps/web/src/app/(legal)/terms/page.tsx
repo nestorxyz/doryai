@@ -1,12 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import { NavigationHeader } from '../../_components/sections/navigation';
+import { Breadcrumbs } from '../../_components/public-page';
+import { publicMetadata } from '@/lib/public-seo';
 
-export const metadata = {
-  title: 'Terms of Service • DoryAI',
-  description:
-    'DoryAI Terms of Service — the legal terms governing your use of our AI-powered link assistant.',
-  alternates: { canonical: '/terms' },
-};
+export const metadata = publicMetadata('/terms');
 
 export default function TermsPage() {
   return (
@@ -14,6 +11,7 @@ export default function TermsPage() {
       <NavigationHeader />
       <main className="min-h-screen bg-white text-black">
         <section className="container mx-auto px-6 py-10 lg:py-14 max-w-4xl">
+          <Breadcrumbs path="/terms" />
           <header className="mb-8">
             <h1 className="text-3xl font-semibold tracking-tight">
               Terms of Service

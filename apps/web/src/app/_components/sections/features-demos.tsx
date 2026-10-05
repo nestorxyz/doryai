@@ -1,7 +1,4 @@
-'use client';
-
 import React from 'react';
-import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 
 type FeatureItem = {
@@ -26,7 +23,7 @@ const DEFAULT_FEATURES: FeatureItem[] = [
   {
     title: 'Store research for school, work, or content',
     description:
-      'Organize articles, papers, and resources by project or topic. Never lose track of important research again.',
+      'Keep articles and resources together by project or topic, then ask about the content DoryAI captured.',
     imageUrl: '/landing/research.png',
   },
 ];
@@ -41,8 +38,8 @@ export const FeaturesDemo: React.FC<{ items?: FeatureItem[] }> = ({
       className="py-20 w-full flex flex-col items-center justify-center mx-auto scroll-mt-28"
     >
       <div className="mx-auto w-full max-w-[1242px]">
-        <h2 className="text-center text-5xl font-medium mb-20">
-          See the magic in action!
+        <h2 className="text-center text-3xl md:text-5xl font-medium mb-20 px-6">
+          A library for things you want to revisit
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-[110px] px-4 md:px-0">
@@ -61,7 +58,7 @@ export const FeaturesDemo: React.FC<{ items?: FeatureItem[] }> = ({
                         src={item.imageUrl}
                         alt={item.title}
                         fill
-                        sizes="(min-width: 768px) 50vw, 100vw"
+                        sizes="(min-width: 1242px) 610px, (min-width: 768px) 49vw, calc(100vw - 32px)"
                         className="object-cover"
                       />
                     </div>

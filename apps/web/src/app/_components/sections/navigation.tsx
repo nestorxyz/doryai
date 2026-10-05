@@ -23,6 +23,7 @@ export const NavigationHeader = () => {
               alt="DoryAI Logo"
               width={599}
               height={167}
+              sizes="120px"
               className="h-auto w-[120px]"
             />
           </Link>
@@ -30,30 +31,30 @@ export const NavigationHeader = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
+              href="/how-it-works"
+              className="text-base font-medium hover:underline underline-offset-4"
+            >
+              How it works
+            </Link>
+            <Link
+              href="/about"
+              className="text-base font-medium hover:underline underline-offset-4"
+            >
+              About
+            </Link>
+            <Link
               href="/#pricing"
               className="text-base font-medium text-dark-text hover:text-primary transition-colors duration-150 ease-in-out"
             >
               Pricing
             </Link>
-            <Link
-              href="/#features"
-              className="text-base font-medium text-dark-text hover:text-primary transition-colors duration-150 ease-in-out"
-            >
-              Features
-            </Link>
-            <a
-              href="mailto:nmamanipantoja@gmail.com"
-              className="text-base font-medium text-dark-text hover:text-primary transition-colors duration-150 ease-in-out"
-            >
-              Contact
-            </a>
           </nav>
 
-          {/* App Store Button - Desktop */}
+          {/* Login - Desktop */}
           <div className="hidden md:block">
             <Link
               href="/sign-in"
-              className="inline-flex items-center px-6 py-3 bg-[#EA64D3] text-white text-base font-medium rounded-md hover:bg-blue-600 hover:shadow-lg transform hover:scale-105 transition-all duration-150 ease-in-out"
+              className="inline-flex items-center px-6 py-3 bg-[#EA64D3] text-black text-base font-medium rounded-md hover:bg-pink-300 transition-colors duration-150 ease-in-out"
             >
               Login
             </Link>
@@ -64,6 +65,8 @@ export const NavigationHeader = () => {
             onClick={toggleMobileMenu}
             className="md:hidden p-2 rounded-md text-dark-text hover:text-primary transition-colors duration-150 ease-in-out"
             aria-label="Toggle mobile menu"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6" />
@@ -76,7 +79,19 @@ export const NavigationHeader = () => {
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-light-background">
-            <nav className="flex flex-col space-y-4 pt-4">
+            <nav
+              id="mobile-navigation"
+              className="flex flex-col space-y-4 pt-4"
+            >
+              <Link
+                href="/how-it-works"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                How it works
+              </Link>
+              <Link href="/about" onClick={() => setIsMobileMenuOpen(false)}>
+                About
+              </Link>
               <Link
                 href="/#features"
                 className="text-base font-medium text-dark-text hover:text-primary transition-colors duration-150 ease-in-out"
@@ -85,7 +100,7 @@ export const NavigationHeader = () => {
                 Features
               </Link>
               <Link
-                href="#pricing"
+                href="/#pricing"
                 className="text-base font-medium text-dark-text hover:text-primary transition-colors duration-150 ease-in-out"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -100,7 +115,7 @@ export const NavigationHeader = () => {
               </a>
               <Link
                 href="/sign-in"
-                className="inline-flex items-center px-6 py-3 bg-[#EA64D3] text-white text-base font-medium rounded-md hover:bg-blue-600 hover:shadow-lg transform hover:scale-105 transition-all duration-150 ease-in-out"
+                className="inline-flex items-center px-6 py-3 bg-[#EA64D3] text-black text-base font-medium rounded-md hover:bg-pink-300 transition-colors duration-150 ease-in-out"
               >
                 Login
               </Link>

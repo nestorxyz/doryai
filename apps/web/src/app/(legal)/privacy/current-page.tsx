@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { NavigationHeader } from '../../_components/sections/navigation';
+import { Breadcrumbs } from '../../_components/public-page';
 
 export function CurrentPrivacyPage() {
   return (
     <main className="min-h-screen bg-white text-black">
       <NavigationHeader />
       <article className="prose prose-neutral mx-auto max-w-4xl px-6 py-10 lg:py-14">
+        <Breadcrumbs path="/privacy" />
         <header className="mb-10">
           <h1>Privacy Policy</h1>
           <p className="text-sm text-gray-500">Last revised: September 15, 2026</p>

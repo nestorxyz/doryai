@@ -1,210 +1,47 @@
-'use client';
-
-import { Play } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-interface HeroSectionProps {
-  className?: string;
-}
-
-export const HeroSection = ({ className }: HeroSectionProps) => {
-  return (
-    <section
-      className={`py-20 px-6 overflow-hidden relative ${className}`}
-      style={{
-        background: 'linear-gradient(180deg,#d1d1d157,#f8f8f866)',
-      }}
-    >
-      {/* Decorative background from Framer */}
-      <div
-        className="framer-5r9pn4"
-        data-framer-name="Blur Shadow Box"
-        aria-hidden
-        style={{
-          alignContent: 'center',
-          alignItems: 'center',
-          display: 'flex',
-          flex: 'none',
-          flexDirection: 'row',
-          flexWrap: 'nowrap',
-          gap: '10px',
-          height: 'min-content',
-          justifyContent: 'center',
-          left: '50%',
-          minHeight: '1062px',
-          overflow: 'hidden',
-          padding: 0,
-          position: 'absolute',
-          top: '-200px',
-          transform: 'translate(-50%)',
-          width: '135%',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      >
-        <div
-          className="framer-w9zz7f"
-          data-framer-name="Blur Shadow1"
-          style={{
-            WebkitFilter: 'blur(16px)',
-            background: 'linear-gradient(180deg,#fff,#fff0)',
-            borderRadius: '100%',
-            filter: 'blur(16px)',
-            flex: 'none',
-            height: '1190px',
-            left: 'calc(7.374935533780322% - 98px / 2)',
-            position: 'absolute',
-            top: 'calc(40.01883239171377% - 1190px / 2)',
-            width: '98px',
-            transform: 'rotate(-56deg)',
-          }}
-        ></div>
-        <div
-          className="framer-3lbbhj"
-          data-framer-name="Blur Shadow2"
-          style={{
-            WebkitFilter: 'blur(16px)',
-            background: 'linear-gradient(180deg,#fff,#fff0)',
-            borderRadius: '100%',
-            filter: 'blur(16px)',
-            flex: 'none',
-            height: '1190px',
-            left: 'calc(7.374935533780322% - 98px / 2)',
-            position: 'absolute',
-            top: 'calc(40.01883239171377% - 1190px / 2)',
-            width: '98px',
-            transform: 'rotate(-56deg)',
-          }}
-        ></div>
-        <div
-          className="framer-1spyi1i"
-          data-framer-name="Blur Shadow3"
-          style={{
-            WebkitFilter: 'blur(13.5px)',
-            background: 'linear-gradient(180.14780039541495deg,#fff,#fff0)',
-            borderRadius: '100%',
-            filter: 'blur(13.5px)',
-            flex: 'none',
-            height: '1190px',
-            left: 'calc(52.08333333333336% - 98px / 2)',
-            position: 'absolute',
-            top: 'calc(50.00000000000002% - 1190px / 2)',
-            width: '98px',
-            transform: 'rotate(-45deg)',
-          }}
-        ></div>
-        <div
-          className="framer-1nmpm86"
-          data-framer-name="Blur Shadow4"
-          style={{
-            WebkitFilter: 'blur(13.5px)',
-            background: 'linear-gradient(180.14780039541495deg,#fff,#fff0)',
-            borderRadius: '100%',
-            filter: 'blur(13.5px)',
-            flex: 'none',
-            height: '1190px',
-            left: 'calc(52.08333333333336% - 98px / 2)',
-            position: 'absolute',
-            top: 'calc(50.00000000000002% - 1190px / 2)',
-            width: '98px',
-            transform: 'rotate(32deg)',
-          }}
-        ></div>
-        <div
-          className="framer-a6nesr"
-          data-framer-name="Blur Shadow5"
-          style={{
-            WebkitFilter: 'blur(16px)',
-            background:
-              'linear-gradient(180deg,#fff 38.72994087837838%,#fff0 86%)',
-            borderRadius: '100%',
-            filter: 'blur(16px)',
-            flex: 'none',
-            height: '771px',
-            left: 'calc(65.60283687943264% - 63px / 2)',
-            position: 'absolute',
-            top: 'calc(41.05461393596989% - 771px / 2)',
-            width: '63px',
-            transform: 'rotate(39deg)',
-          }}
-        ></div>
-        <div
-          className="framer-c38dfo"
-          data-framer-name="Blur Shadow6"
-          style={{
-            WebkitFilter: 'blur(16px)',
-            background: 'linear-gradient(180deg,#fff,#fff0)',
-            borderRadius: '100%',
-            filter: 'blur(16px)',
-            flex: 'none',
-            height: '1189px',
-            left: 'calc(89.47911294481695% - 98px / 2)',
-            position: 'absolute',
-            top: 'calc(36.34651600753298% - 1189px / 2)',
-            width: '98px',
-            transform: 'rotate(51deg)',
-          }}
-        ></div>
+export const HeroSection = () => (
+  <section className="bg-gradient-to-b from-gray-100 to-gray-50 px-6 py-16 md:py-20">
+    <div className="container mx-auto max-w-6xl">
+      <div className="mb-12 text-center">
+        <p className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-600">
+          AI bookmark manager
+        </p>
+        <h1 className="mb-6 text-4xl font-bold leading-tight text-black md:text-5xl lg:text-6xl">
+          Save a link.
+          <br />
+          Find it when you need it.
+        </h1>
+        <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-gray-600">
+          Keep webpages, videos, and social posts in one library. DoryAI helps
+          organize them, then finds saved content when you ask in your own
+          words.
+        </p>
+        <Link
+          href="/sign-in"
+          className="inline-flex rounded-md bg-black px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-gray-800"
+        >
+          Save your first link
+        </Link>
+        <p className="mt-3 text-sm text-gray-600">
+          Free plan: up to 20 saved links.
+        </p>
       </div>
-      <div
-        className="container mx-auto max-w-6xl mt-[44px]"
-        style={{ position: 'relative', zIndex: 1 }}
-      >
-        {/* Main Content */}
-        <div className="text-center mb-16">
-
-          {/* Hero Headline */}
-          <h1 className="text-4xl !z-99 md:text-5xl lg:text-6xl font-bold text-dark-text mb-6 leading-tight">
-            Never lose a link again.
-          </h1>
-
-          {/* Descriptive Paragraph */}
-          <p className="text-lg text-muted max-w-3xl mx-auto leading-relaxed mb-12">
-            Save links by chatting. Your AI assistant organizes them instantly —
-            with context, tags, and memory.
-          </p>
-
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center px-6 py-3 bg-black text-white text-lg font-medium rounded-md hover:bg-blue-600 hover:shadow-lg transform hover:scale-105 transition-all duration-150 ease-in-out"
-          >
-            Try DoryAI
-          </Link>
-        </div>
-
-        {/* Video Section */}
-        <div className="mx-auto">
-          <div className="relative bg-light-background rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <Image
-              src="/product.png"
-              alt="DoryAI dashboard"
-              className="inset-0 h-auto w-full"
-              width={3014}
-              height={1572}
-              priority
-            />
-
-            {/* Video Overlay (optional, for styling) */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
-
-            {/* Play Button Overlay (optional, for better UX) */}
-            {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
-                <Play
-                  className="w-6 h-6 text-primary ml-1"
-                  fill="currentColor"
-                />
-              </div>
-            </div> */}
-          </div>
-
-          {/* Video Caption */}
-          <p className="text-center text-sm text-muted mt-4">
-            DoryAI automatically organizes your saved links with AI.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-};
+      <figure>
+        <Image
+          src="/product.png"
+          alt="DoryAI dashboard with a visual saved-link library beside the chat"
+          width={3014}
+          height={1572}
+          sizes="(min-width: 1200px) 1152px, calc(100vw - 48px)"
+          priority
+          className="h-auto w-full rounded-2xl shadow-lg"
+        />
+        <figcaption className="mt-4 text-center text-sm text-gray-600">
+          Your saved links and the chat that helps you revisit them.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+);

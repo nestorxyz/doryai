@@ -8,37 +8,14 @@ import ConvexClientProvider from '@/components/ConvexClientProvider';
 import { ClerkProvider } from '@clerk/nextjs';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { siteConfig } from '@/lib/site-config';
+import { publicMetadata } from '@/lib/public-seo';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: siteConfig.url,
-  title: 'DoryAI — Save and find useful links',
-  description:
-    'Save useful webpages and social links through chat, let DoryAI organize them, and find them later in your own words.',
+  ...publicMetadata('/'),
   applicationName: 'DoryAI',
-  openGraph: {
-    type: 'website',
-    siteName: 'DoryAI',
-    title: 'DoryAI — Save and find useful links',
-    description:
-      'Save useful webpages and social links through chat, then find them later in your own words.',
-    images: [
-      {
-        url: '/product.png',
-        width: 3014,
-        height: 1572,
-        alt: 'DoryAI link library and chat interface',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'DoryAI — Save and find useful links',
-    description:
-      'Save useful webpages and social links through chat, then find them later in your own words.',
-    images: ['/product.png'],
-  },
   robots: {
     index: siteConfig.indexable,
     follow: siteConfig.indexable,

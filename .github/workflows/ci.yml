@@ -32,6 +32,9 @@ jobs:
       - name: Build web when a Clerk test publishable key is configured
         if: env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY != ''
         run: npm run build
+      - name: Check public SEO in generated HTML
+        if: env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY != ''
+        run: npm run check:seo
 
   api:
     runs-on: ubuntu-latest

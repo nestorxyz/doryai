@@ -1,5 +1,3 @@
-'use client';
-
 import { Check } from 'lucide-react';
 import { PAID_PLAN_COPY, PaidPlanCopy } from '@/lib/billing-copy';
 
@@ -10,9 +8,13 @@ export const PricingSection = () => {
     <section id="pricing" aria-label="pricing" className="py-20 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-center text-5xl font-medium mb-20">
-            Choose the perfect plan
+          <h2 className="text-center text-3xl md:text-5xl font-medium mb-6">
+            Start free. Upgrade when you need more room.
           </h2>
+          <p className="text-gray-600">
+            Save up to 20 links on the free plan. Paid-plan terms are shown at
+            checkout.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -21,7 +23,7 @@ export const PricingSection = () => {
             {plans
               .slice()
               .sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0))
-              .map((plan, index) => (
+              .map((plan) => (
                 <PricingCard key={plan.title} plan={plan} />
               ))}
           </div>
@@ -55,7 +57,7 @@ const PricingCard = ({ plan }: PricingCardProps) => {
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
           <span className="bg-[#007AFF] text-white px-4 py-1 rounded-full text-sm font-medium">
-            Most Popular
+            Lower annual price
           </span>
         </div>
       )}

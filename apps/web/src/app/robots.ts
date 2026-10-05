@@ -1,15 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { siteConfig } from '@/lib/site-config';
+import { crawlerRules } from '@/lib/public-seo';
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: siteConfig.indexable
-      ? {
-          userAgent: '*',
-          allow: ['/', '/privacy', '/security', '/terms'],
-          disallow: ['/auth/', '/dashboard/', '/sign-in/'],
-        }
-      : { userAgent: '*', disallow: '/' },
+    rules: crawlerRules(siteConfig.indexable),
     sitemap: new URL('/sitemap.xml', siteConfig.url).href,
   };
 }

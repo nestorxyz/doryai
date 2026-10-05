@@ -3,8 +3,8 @@
 The DoryAI web product: Next.js UI, Clerk authentication, and Convex data/actions
 for saving, organizing, searching, and chatting with a personal link library.
 
-The GitHub repository retains the historical `clippo-link` name. DoryAI is the
-current product name.
+The canonical public repository is `nestorxyz/doryai`. Historical `clippo-*`
+provider names remain in service configuration, not in product branding.
 
 ## Stack
 
@@ -12,7 +12,7 @@ current product name.
 - TypeScript and Tailwind CSS
 - Clerk authentication
 - Convex database, actions, storage, and billing state
-- A separate Express/Gemini service at `../backend`
+- The Express/Gemini service at `../api` in this monorepo
 
 ## Local setup
 
@@ -95,12 +95,12 @@ or the rendered desktop/mobile experience.
 
 ## Publication
 
-The owner approved public visibility and production deployment on 2026-09-15,
-then selected AGPL-3.0-only and confirmed DoryAI asset ownership on 2026-09-19.
-Both implementation repositories are public under AGPL-3.0-only after the
-approved history cleanup and clean scan. On 2026-09-27, web/Convex revision
-`8f1d53b` passed main CI `36348168474` and Vercel Production deployment
-`6697487569`; `https://www.doryai.xyz` returned HTTP 200 and production Convex
-exposes `links:enrichLinkContentForBackend`. Authenticated production source,
-billing, and mobile acceptance are separate from this deployment and remain
-open in the DoryAI project packet.
+The owner selected AGPL-3.0-only and confirmed DoryAI asset ownership. The
+public monorepo became canonical on 2026-10-01; the two original repositories
+are archived. Follow [deployment cutover](../../docs/DEPLOYMENT_CUTOVER.md)
+for provider roots, environment isolation, approval gates and rollback.
+
+Public-page metadata, crawl rules, structured data and the SEO verification
+plan are documented in [SEO and discovery](../../docs/SEO_DISCOVERY.md).
+After a web build, run `npm run check:seo` to inspect the actual prerendered
+HTML. This does not replace deployed HTTP checks or desktop/mobile review.

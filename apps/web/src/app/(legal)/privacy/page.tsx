@@ -1,10 +1,5 @@
-import type { Metadata } from 'next';
+import { publicMetadata } from '@/lib/public-seo';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy • DoryAI',
-  description:
-    'What data the current DoryAI product processes and the controls available to users.',
-  alternates: { canonical: '/privacy' },
-};
+export const metadata = publicMetadata('/privacy');
 
 export { CurrentPrivacyPage as default } from './current-page';

@@ -66,7 +66,25 @@ for (const path of paths) {
   const schemas = [
     ...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs),
   ].map(([, json]) => JSON.parse(json));
-  if (path === "/how-it-works") {
+  if (path === "/") {
+    for (const text of [
+      "Save the video.",
+      "Your example video library",
+      "Instagram Reels",
+      "YouTube Shorts",
+      "TikTok",
+      "Fictional clips",
+      "not real posts or playable videos",
+    ]) {
+      assert.ok(html.includes(text), `Homepage landing SSR: ${text}`);
+    }
+    assert.equal(
+      schemas.filter((schema) => schema["@graph"]).length,
+      1,
+      "Homepage has one product schema graph",
+    );
+  }
+  if (path === "/" || path === "/how-it-works") {
     const faq = schemas.find((schema) => schema["@type"] === "FAQPage");
     assert.ok(faq, "Visible FAQ has structured data");
     assert.equal(

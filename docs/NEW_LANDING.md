@@ -1,9 +1,10 @@
 # New landing review
 
-The finished alternative lives at `/new-landing`. The existing `/` page, app
-layout, backend, user library and billing handlers are unchanged. This route
-has `noindex,nofollow`, canonical `/`, and is absent from the six-page sitemap.
-No production release is part of this change.
+The owner accepted the video-first Preview and authorized homepage promotion
+on 2026-10-05. Both `/` and `/new-landing` now reuse `LandingPage`; `/` retains
+its public metadata and indexing policy. App layout, backend, user library and
+billing handlers are unchanged. The review route keeps `noindex,nofollow`,
+canonical `/`, and is absent from the six-page sitemap.
 
 ## Design and composition
 
@@ -52,12 +53,14 @@ public-page checks. Browser review must exercise all three questions, source
 matching, reset, keyboard/FAQ/signup links and narrow-screen overflow. Tests also
 guard against fictional examples acquiring fake real-post URLs.
 
-## Homepage promotion after acceptance
+## Homepage promotion and rollback
 
-The promotion is intentionally small: keep `publicMetadata('/')` in
-`apps/web/src/app/page.tsx`, import `LandingPage` and return `<LandingPage />`.
+The promotion is intentionally small: `publicMetadata('/')` stays in
+`apps/web/src/app/page.tsx`, which imports `LandingPage` and returns `<LandingPage />`.
 Keep the shared product/FAQ schemas in that component; do not duplicate them in
 the route. No `/new-landing`-specific links are embedded in the component.
-Re-run generated-HTML and browser checks, then obtain production authorization.
-The old homepage remains available in Git for rollback; the isolated review
+Generated-HTML checks now require the accepted video-first homepage content
+and visible FAQ/schema parity, alongside the review-route noindex checks.
+Run browser checks on the canonical domain after deploying the authorized commit.
+The old homepage remains available at `7555337` for rollback; the isolated review
 route can be removed in a separate cleanup after acceptance.

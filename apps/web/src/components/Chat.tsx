@@ -11,7 +11,6 @@ import {
   Send,
   Trash2,
   Link as LinkIcon,
-  ExternalLink,
   ArrowRight,
 } from 'lucide-react';
 import { Message } from '@/lib/types';
@@ -22,8 +21,9 @@ import {
   getSavedLinkPreviewsById,
   getSearchResultPreviews,
   suggestedSavedLinkQuestion,
-  type SearchResultPreview,
 } from './chat/chat-message';
+import { LinkResults, SearchResultCard } from './chat/LinkResults';
+import { AssistantAnswer } from './chat/AssistantAnswer';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -42,8 +42,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useQuery, useMutation, useAction } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Id } from '../../convex/_generated/dataModel';
@@ -51,53 +49,12 @@ import Image from 'next/image';
 import { extractSharedHttpUrl } from '@/lib/share-target';
 import { LinkPreviewArtwork } from '@/components/LinkPreviewArtwork';
 
-const SearchResultCard = ({ result }: { result: SearchResultPreview }) => {
-  return (
-    <a
-      href={result.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative flex h-36 min-w-0 flex-col overflow-hidden rounded-xl border border-white/15 bg-[#141414] transition-colors hover:border-white/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:h-40"
-    >
-      <LinkPreviewArtwork url={result.url} imgPreview={result.imgPreview} />
-      <span className="pointer-events-none absolute inset-x-0 bottom-0 h-4/5 bg-gradient-to-t from-black/95 via-black/65 to-transparent" />
-      {result.contentScope ? (
-        <span className="relative z-10 m-2 self-start rounded bg-black/70 px-2 py-0.5 text-[10px] text-amber-200">
-          {result.contentScope === 'partial-preview'
-            ? 'Partial preview'
-            : 'Metadata only'}
-        </span>
-      ) : null}
-      <span className="relative z-10 mt-auto flex min-w-0 flex-col px-3 pb-3">
-        <span className="flex items-start justify-between gap-2 text-sm font-semibold text-white">
-          <span className="min-w-0 line-clamp-2 break-words">{result.title}</span>
-          <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        </span>
-        <span className="mt-1 block truncate text-xs text-gray-300">
-          {new URL(result.url).hostname}
-        </span>
-      </span>
-    </a>
-  );
-};
-
 const SearchResultCards = memo(({ message }: { message: Message }) => {
   const results = getSearchResultPreviews({
     role: message.role ?? '',
     parts: message.parts,
   });
-  if (results.length === 0) return null;
-
-  return (
-    <div className="saved-link-results mt-3" aria-label="Saved link search results">
-      <p className="mb-2 text-xs text-muted-foreground">Top matches</p>
-      <div className="saved-link-results-grid">
-        {results.map((result) => (
-          <SearchResultCard key={result.id} result={result} />
-        ))}
-      </div>
-    </div>
-  );
+  return <LinkResults results={results} />;
 });
 
 const SavedLinkMoment = ({
@@ -202,18 +159,11 @@ const MessageList = memo(
               )}
             >
               {message.sender === 'bot' || message.role === 'model' ? (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a {...props} target="_blank" rel="noopener noreferrer" />
-                    ),
-                  }}
-                >
-                  {message.text ||
+                <AssistantAnswer
+                  text={message.text ||
                     (message.parts && message.parts[0]?.text) ||
                     ''}
-                </ReactMarkdown>
+                />
               ) : (
                 <p className="text-sm whitespace-pre-wrap">
                   {message.text || (message.parts && message.parts[0]?.text)}

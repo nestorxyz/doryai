@@ -53,6 +53,7 @@ export interface FunctionResponse {
 
 export interface MessagePart {
   text?: string;
+  linkResults?: { version: number; links: unknown[] };
   functionCall?: FunctionCall;
   functionResponse?: FunctionResponse;
 }

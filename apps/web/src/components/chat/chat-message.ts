@@ -1,4 +1,4 @@
-import { safePreviewImage } from '../../lib/link-preview';
+import { safePreviewImage, youtubeThumbnailFromUrl } from '../../lib/link-preview';
 
 export interface ChatRecord {
   role: string;
@@ -61,6 +61,7 @@ const responseStatus = ({ name, response = {} }: FunctionResponse): string => {
   }
   if (name === 'get_links') {
     if (response.error) return 'Could not search saved links. Please try again.';
+    if (response.presentation === 'pending') return '';
     const links = Array.isArray(response.links) ? response.links : [];
     return links.length === 0
       ? 'No saved links matched that search.'
@@ -79,14 +80,23 @@ export const getSearchResultPreviews = (
 ): SearchResultPreview[] => {
   if (!Array.isArray(record.parts)) return [];
   const previews: SearchResultPreview[] = [];
+  const seenIds = new Set<string>();
+  const seenUrls = new Set<string>();
   for (const part of record.parts) {
     if (!part || typeof part !== 'object') continue;
-    const responsePart = (part as Record<string, unknown>).functionResponse;
-    if (!responsePart || typeof responsePart !== 'object') continue;
-    const { name, response } = responsePart as FunctionResponse;
-    if (name !== 'get_links' || !Array.isArray(response?.links)) continue;
+    const value = part as Record<string, unknown>;
+    const ui = record.role === 'model' && value.linkResults && typeof value.linkResults === 'object'
+      ? value.linkResults as Record<string, unknown>
+      : null;
+    const responsePart = value.functionResponse;
+    const { name, response } = responsePart && typeof responsePart === 'object'
+      ? responsePart as FunctionResponse : {};
+    const links = ui?.version === 1 && Array.isArray(ui.links)
+      ? ui.links
+      : name === 'get_links' && response?.presentation !== 'pending' && Array.isArray(response?.links)
+        ? response.links : [];
 
-    for (const candidate of response.links.slice(0, 5)) {
+    for (const candidate of links.slice(0, 20)) {
       if (!candidate || typeof candidate !== 'object') continue;
       const link = candidate as Record<string, unknown>;
       if (
@@ -97,6 +107,11 @@ export const getSearchResultPreviews = (
       try {
         const url = new URL(link.url);
         if (url.protocol !== 'http:' && url.protocol !== 'https:') continue;
+        if (url.username || url.password) continue;
+        const identity = resultIdentity(url);
+        if (seenIds.has(link.id) || seenUrls.has(identity)) continue;
+        seenIds.add(link.id);
+        seenUrls.add(identity);
       } catch {
         continue;
       }
@@ -120,6 +135,23 @@ export const getSearchResultPreviews = (
     }
   }
   return previews;
+};
+
+// Compare social post identity without changing the saved navigation target.
+const resultIdentity = (url: URL): string => {
+  const host = url.hostname.replace(/^www\./, '');
+  const youtube = youtubeThumbnailFromUrl(url.toString());
+  if (youtube) return youtube;
+  const instagram = host === 'instagram.com' && url.pathname.match(/^\/(?:reel|p|tv)\/([^/]+)/);
+  if (instagram) return `instagram:${instagram[1]}`;
+  const xPost = ['x.com', 'twitter.com', 'mobile.twitter.com'].includes(host) && url.pathname.match(/\/status\/(\d+)/);
+  if (xPost) return `x:${xPost[1]}`;
+  url.hash = '';
+  for (const key of [...url.searchParams.keys()]) {
+    if (key.toLowerCase().startsWith('utm_')) url.searchParams.delete(key);
+  }
+  url.searchParams.sort();
+  return url.toString();
 };
 
 export const getSavedLinkPreview = (

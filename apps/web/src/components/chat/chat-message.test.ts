@@ -278,6 +278,36 @@ describe('post-save onboarding', () => {
 });
 
 describe('saved search results', () => {
+  it('waits for the AI selection instead of showing preliminary candidates', () => {
+    const pending = { role: 'function', parts: [{ functionResponse: { name: 'get_links', response: {
+      presentation: 'pending', links: [{ id: 'a', title: 'Candidate', url: 'https://example.com/a' }],
+    } } }] };
+    expect(formatChatRecord(pending)).toBe('');
+    expect(getSearchResultPreviews(pending)).toEqual([]);
+    expect(formatChatRecord({ role: 'function', parts: [{ functionResponse: { name: 'get_links', response: {
+      presentation: 'pending', error: 'Search failed',
+    } } }] })).toContain('Could not search');
+  });
+
+  it('renders the persisted selection in model order with all 20 matches available', () => {
+    const links = Array.from({ length: 20 }, (_, index) => ({ id: `${index}`, title: `Source ${index}`, url: `https://example.com/${index}` }));
+    expect(getSearchResultPreviews({ role: 'model', parts: [{ text: 'Answer', linkResults: { version: 1, links } }] }).map(({ id }) => id)).toEqual(links.map(({ id }) => id));
+    expect(getSearchResultPreviews({ role: 'user', parts: [{ linkResults: { version: 1, links } }] })).toEqual([]);
+    expect(getSearchResultPreviews({ role: 'model', parts: [{ linkResults: { version: 2, links } }] })).toEqual([]);
+  });
+
+  it('collapses duplicate social posts without changing their navigation URLs', () => {
+    const links = [
+      { id: 'a', title: 'First title', url: 'https://www.instagram.com/reel/SamePost/?igsh=one' },
+      { id: 'b', title: 'Different title', url: 'https://instagram.com/reel/SamePost/?utm_source=share&igsh=two' },
+      { id: 'c', title: 'Different post', url: 'https://instagram.com/reel/Different/' },
+      { id: 'd', title: 'Unsafe credentials', url: 'https://user:pass@example.com' },
+    ];
+    const previews = getSearchResultPreviews({ role: 'model', parts: [{ linkResults: { version: 1, links } }] });
+    expect(previews.map(({ id }) => id)).toEqual(['a', 'c']);
+    expect(previews[0].url).toBe(links[0].url);
+  });
+
   it('renders an honest empty state and a selected-link read status', () => {
     expect(formatChatRecord({
       role: 'function',

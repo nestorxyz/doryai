@@ -1050,9 +1050,9 @@ export class AIService {
             `🛠️ AI tool calls: ${functionCalls.map(({ name }) => name).join(', ')}`,
           );
 
-          const functionCallParts = functionCalls.map((fc) => ({
-            functionCall: fc,
-          }));
+          const functionCallParts = modelHistoryParts(
+            result.candidates?.[0]?.content?.parts,
+          );
 
           // Save function calls to chat history via Convex
           await convex.mutation(api.chat.saveMessage, {
@@ -1302,9 +1302,9 @@ Execute the two-step process to analyze and save this link with appropriate cate
 
         const functionCalls = result.functionCalls;
         if (functionCalls && functionCalls.length > 0) {
-          const functionCallParts = functionCalls.map((fc) => ({
-            functionCall: fc,
-          }));
+          const functionCallParts = modelHistoryParts(
+            result.candidates?.[0]?.content?.parts,
+          );
           contents.push({ role: 'model', parts: functionCallParts });
 
           const functionResponseParts: any[] = [];

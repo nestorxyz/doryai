@@ -118,3 +118,15 @@ test('persisted UI payloads never leak into Gemini history parts', () => {
     ],
   );
 });
+
+
+test('model signatures survive tool, text and standalone-part history round trips', () => {
+  const parts = [
+    { functionCall: { name: 'get_links', args: {} }, thoughtSignature: 'opaque-signature' },
+    { functionCall: { name: 'get_link', args: { linkId: 'saved-0' } } },
+    { text: 'Answer', thoughtSignature: 'text-signature', thought: false },
+    { thoughtSignature: 'standalone-signature' },
+  ];
+  assert.deepEqual(modelHistoryParts(parts), parts);
+  assert.deepEqual(modelHistoryParts(modelHistoryParts(parts)), parts);
+});

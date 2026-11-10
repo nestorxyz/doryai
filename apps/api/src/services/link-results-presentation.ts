@@ -71,10 +71,16 @@ export const modelHistoryParts = (
   if (!Array.isArray(parts)) return [];
   return parts.flatMap<Record<string, unknown>>((part) => {
     if (!part || typeof part !== 'object') return [];
-    if (typeof part.text === 'string') return [{ text: part.text }];
-    if (part.functionCall) return [{ functionCall: part.functionCall }];
+    const metadata = {
+      ...(typeof part.thoughtSignature === 'string'
+        ? { thoughtSignature: part.thoughtSignature } : {}),
+      ...(typeof part.thought === 'boolean' ? { thought: part.thought } : {}),
+    };
+    if (typeof part.text === 'string') return [{ text: part.text, ...metadata }];
+    if (part.functionCall) return [{ functionCall: part.functionCall, ...metadata }];
     if (part.functionResponse)
-      return [{ functionResponse: part.functionResponse }];
+      return [{ functionResponse: part.functionResponse, ...metadata }];
+    if (typeof part.thoughtSignature === 'string') return [metadata];
     return [];
   });
 };

@@ -1,5 +1,6 @@
 import { YtDlp } from 'ytdlp-nodejs';
-import { GoogleGenAI } from '@google/genai';
+import type { GoogleGenAI } from '@google/genai';
+import { createGeminiClient, geminiModelName } from '../config/gemini';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -30,9 +31,7 @@ export class SocialMediaService {
 
   constructor() {
     this.ytdlp = new YtDlp();
-    this.genAI = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY!,
-    });
+    this.genAI = createGeminiClient();
     this.tempDir = path.join(os.tmpdir(), 'social-media-temp');
 
     // Check if we're in production without Python (async initialization)
@@ -310,7 +309,7 @@ export class SocialMediaService {
 
       // Generate transcript
       const result = await this.genAI.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: geminiModelName(),
         contents: [
           {
             role: 'user',

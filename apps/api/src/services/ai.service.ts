@@ -1,3 +1,4 @@
+import { createGeminiClient, geminiModelName } from '../config/gemini';
 import { convex, api } from '../config/convex'; // Added Convex import
 import { enqueueThumbnailJob } from './thumbnail.service';
 import { socialMediaService } from './socialMedia.service';
@@ -42,7 +43,6 @@ import {
 import {
   FunctionCallingConfigMode,
   FunctionDeclaration,
-  GoogleGenAI,
   Type,
 } from '@google/genai';
 
@@ -62,16 +62,8 @@ interface QuickSaveLinkResponse {
   subcategory?: string;
 }
 
-// Initialize Gemini AI
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-if (!GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY environment variable is required');
-}
-
-const genAI = new GoogleGenAI({
-  apiKey: GEMINI_API_KEY,
-});
-const modelName = 'gemini-2.5-flash';
+const genAI = createGeminiClient();
+const modelName = geminiModelName();
 
 // System prompt template for direct link saving
 const LINK_SAVING_SYSTEM_PROMPT = `# 🔗 Link Analysis and Categorization Specialist

@@ -68,6 +68,16 @@ unverified. The chat flow can also store copies of the text, and there is no
 edit/deletion refresh. See the [X ingestion boundary](docs/X-INGESTION.md):
 the current X content policy remains an unresolved release risk.
 
+## Optional Vertex AI backend
+
+See `../../docs/GEMINI_RECOVERY.md` for the incident and rollout gate. To use
+Vertex explicitly, configure GOOGLE_GENAI_USE_VERTEXAI=true,
+GOOGLE_CLOUD_PROJECT, GOOGLE_CLOUD_LOCATION (defaults to global), and
+GOOGLE_SERVICE_ACCOUNT_JSON in server secret storage. The service account must
+belong to the configured project. GEMINI_MODEL overrides the existing Flash
+model; gemini-3.8-flash was verified available in the recovery project.
+No Gemini API key is used by this route. Never put credentials in source.
+
 ## Commands
 
 ```sh
